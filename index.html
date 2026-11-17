@@ -6,131 +6,193 @@
 <title>Vayen 0DTE Desk</title>
 <meta name="description" content="Live board for the Vayen 0DTE options bot: callouts, grades, paper trades and the running calibration.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: a desk sheet — summary tiles, then the two ledgers (paper trades, every callout), then the calibration
-   board. Tabular figures everywhere; grade and outcome carried by colour and shape, not only by numbers. */
+/* Layout: a quiet trading desk. One accent, semantic green/red only for money, grade as a small tinted mark.
+   Summary strip → bankroll curve + paper ledger → the full callout ledger → calibration board. */
 :root {
-  --bg: #f4f5f3; --panel: #ffffff; --ink: #15201d; --muted: #5d6b67; --line: #d9dfdc; --line-2: #e9edeb;
-  --accent: #1f6f78; --accent-ink: #ffffff;
-  --win: #1c7c4f; --win-bg: #e3f3ea; --loss: #b8342b; --loss-bg: #fbe7e4; --flat: #7a8783;
-  --s: #a86d00; --s-bg: #fff1d6; --a: #1c7c4f; --a-bg: #e3f3ea; --b: #2a5fb8; --b-bg: #e4ecfb; --c: #6b7673; --c-bg: #eceeed;
-  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --bg: #f6f7f8; --panel: #ffffff; --ink: #111418; --ink-2: #3b434c; --muted: #6b7480; --faint: #9aa3ad;
+  --line: #e4e7eb; --line-2: #eef0f3; --hover: #f3f5f7;
+  --accent: #0f766e; --accent-soft: #e6f3f1;
+  --win: #15803d; --win-soft: #e8f5ec; --loss: #c2410c; --loss-soft: #fdeee6; --flat: #8a93a0;
+  --s: #a16207; --s-soft: #fdf3d8; --a: #15803d; --a-soft: #e8f5ec; --b: #1d4ed8; --b-soft: #e8eefc; --c: #6b7480; --c-soft: #eef0f3;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 1px rgba(16, 24, 40, 0.03);
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --r: 12px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1514; --panel: #171f1d; --ink: #e8eeeb; --muted: #9aa8a3; --line: #2b3633; --line-2: #222b29;
-    --accent: #5fc4cf; --accent-ink: #0f1514;
-    --win: #58c98e; --win-bg: #15302a; --loss: #f08a7e; --loss-bg: #3a1f1c; --flat: #8a9793;
-    --s: #f0b84a; --s-bg: #3a2c10; --a: #58c98e; --a-bg: #15302a; --b: #7fa8ee; --b-bg: #1b2b45; --c: #9aa8a3; --c-bg: #232b29;
+    --bg: #0b0e12; --panel: #12161c; --ink: #e9edf1; --ink-2: #c3cad3; --muted: #8b95a1; --faint: #5f6a76;
+    --line: #232a33; --line-2: #1b2128; --hover: #171c23;
+    --accent: #2dd4bf; --accent-soft: #0f2a27;
+    --win: #4ade80; --win-soft: #0f2a1a; --loss: #fb923c; --loss-soft: #33190c; --flat: #7c8794;
+    --s: #fbbf24; --s-soft: #332a0e; --a: #4ade80; --a-soft: #0f2a1a; --b: #60a5fa; --b-soft: #0f1f3d; --c: #8b95a1; --c-soft: #1b2128;
+    --shadow: none;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1514; --panel: #171f1d; --ink: #e8eeeb; --muted: #9aa8a3; --line: #2b3633; --line-2: #222b29;
-  --accent: #5fc4cf; --accent-ink: #0f1514;
-  --win: #58c98e; --win-bg: #15302a; --loss: #f08a7e; --loss-bg: #3a1f1c; --flat: #8a9793;
-  --s: #f0b84a; --s-bg: #3a2c10; --a: #58c98e; --a-bg: #15302a; --b: #7fa8ee; --b-bg: #1b2b45; --c: #9aa8a3; --c-bg: #232b29;
+  --bg: #0b0e12; --panel: #12161c; --ink: #e9edf1; --ink-2: #c3cad3; --muted: #8b95a1; --faint: #5f6a76;
+  --line: #232a33; --line-2: #1b2128; --hover: #171c23;
+  --accent: #2dd4bf; --accent-soft: #0f2a27;
+  --win: #4ade80; --win-soft: #0f2a1a; --loss: #fb923c; --loss-soft: #33190c; --flat: #7c8794;
+  --s: #fbbf24; --s-soft: #332a0e; --a: #4ade80; --a-soft: #0f2a1a; --b: #60a5fa; --b-soft: #0f1f3d; --c: #8b95a1; --c-soft: #1b2128;
+  --shadow: none;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.45;
-  padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 22px; }
-header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 18px; }
-header.top h1 { font-size: 24px; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-header.top .day { color: var(--muted); font-variant-numeric: tabular-nums; }
-.status { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--muted); }
-.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--flat); box-shadow: 0 0 0 3px color-mix(in srgb, var(--flat) 25%, transparent); }
-.dot.live { background: var(--win); box-shadow: 0 0 0 3px color-mix(in srgb, var(--win) 25%, transparent); }
-.dot.stale { background: var(--s); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s) 25%, transparent); }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); }
-.chip.on { color: var(--ink); border-color: var(--accent); }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
-.tile .k { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.tile .v { font-family: var(--mono); font-size: 26px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.tile .sub { color: var(--muted); font-size: 12px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  padding-block: 28px 56px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 28px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .pos { color: var(--win); } .neg { color: var(--loss); } .zero { color: var(--flat); }
-section { display: grid; gap: 10px; min-width: 0; }
-section h2 { font-size: 15px; margin: 0; display: flex; align-items: baseline; gap: 10px; }
-section h2 small { color: var(--muted); font-weight: 400; font-size: 12px; }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.scroll { overflow-x: auto; }
+
+/* top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: #fff; display: grid; place-items: center; font-family: var(--mono); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; }
+.brand h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.brand .sub { color: var(--muted); font-size: 13px; }
+.status { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.status .t { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--flat); box-shadow: 0 0 0 4px color-mix(in srgb, var(--flat) 18%, transparent); }
+.dot.live { background: var(--win); box-shadow: 0 0 0 4px color-mix(in srgb, var(--win) 20%, transparent); }
+.dot.stale { background: var(--s); box-shadow: 0 0 0 4px color-mix(in srgb, var(--s) 20%, transparent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
+.chip { font-family: var(--mono); font-size: 11.5px; padding: 3px 9px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink-2); }
+
+/* summary strip */
+.strip { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
+.kpi { padding: 18px 22px; min-width: 0; border-left: 1px solid var(--line-2); }
+.kpi:first-child { border-left: 0; }
+.kpi .k { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.01em; }
+.kpi .v { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-top: 6px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.kpi .d { font-size: 12.5px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kpi .d b { font-weight: 600; }
+@media (max-width: 860px) { .strip { grid-template-columns: repeat(2, 1fr); } .kpi:nth-child(3) { border-left: 0; } .kpi:nth-child(n+3) { border-top: 1px solid var(--line-2); } }
+
+/* two-column row */
+.row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; }
+@media (max-width: 960px) { .row { grid-template-columns: 1fr; } }
+section { display: grid; gap: 12px; min-width: 0; }
+.sec-h { display: flex; align-items: baseline; gap: 10px; }
+.sec-h h2 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -0.005em; }
+.sec-h .count { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.sec-h .right { margin-left: auto; font-size: 12.5px; color: var(--muted); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); min-width: 0; }
+.panel.pad { padding: 16px 18px; }
+.scroll { overflow-x: auto; border-radius: var(--r); }
+
+/* tables */
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line-2); white-space: nowrap; vertical-align: top; }
-th { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: color-mix(in srgb, var(--panel) 85%, var(--bg)); position: sticky; top: 0; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line-2); white-space: nowrap; vertical-align: middle; }
+th { font-size: 11.5px; font-weight: 500; color: var(--muted); letter-spacing: 0.02em; background: var(--panel); position: sticky; top: 0; z-index: 1; }
+th.num, td.num { text-align: right; }
+td.num { font-family: var(--mono); font-size: 13px; }
+tbody tr:hover td { background: var(--hover); }
 tbody tr:last-child td { border-bottom: 0; }
-td.num, th.num { text-align: right; font-family: var(--mono); }
-.grade { display: inline-block; min-width: 24px; text-align: center; font-family: var(--mono); font-weight: 600; font-size: 12px; padding: 1px 6px; border-radius: 6px; }
-.grade.S { color: var(--s); background: var(--s-bg); } .grade.A { color: var(--a); background: var(--a-bg); }
-.grade.B { color: var(--b); background: var(--b-bg); } .grade.C { color: var(--c); background: var(--c-bg); }
-.path { color: var(--muted); font-family: var(--mono); font-size: 11px; margin-left: 4px; }
-.rungs { display: inline-flex; gap: 4px; }
-.rung { width: 22px; height: 18px; border-radius: 4px; border: 1px solid var(--line); font-family: var(--mono); font-size: 10px; display: inline-grid; place-items: center; color: var(--muted); }
-.rung.hit { background: var(--win-bg); color: var(--win); border-color: transparent; }
-.outcome { font-family: var(--mono); font-size: 12px; padding: 1px 7px; border-radius: 6px; background: var(--c-bg); color: var(--c); }
-.outcome.targets { background: var(--win-bg); color: var(--win); }
-.outcome.invalidated, .outcome.stop { background: var(--loss-bg); color: var(--loss); }
-.outcome.open { background: var(--b-bg); color: var(--b); }
-.bar { height: 6px; border-radius: 3px; background: var(--line-2); position: relative; min-width: 80px; }
-.bar > i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); }
-.calib { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
-.calib .panel { padding: 10px 12px 6px; }
-.calib h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.calib table td, .calib table th { padding: 5px 6px; }
-ul.lessons { margin: 0; padding: 12px 16px 12px 32px; }
-ul.lessons li { margin: 4px 0; }
-.foot { color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
-.empty { padding: 16px; color: var(--muted); }
-svg.spark { display: block; width: 100%; height: 120px; }
-details.read { font-size: 12px; color: var(--muted); max-width: 560px; white-space: normal; }
-details.read summary { cursor: pointer; color: var(--muted); }
-@media (max-width: 640px) { header.top h1 { font-size: 20px; } .tile .v { font-size: 22px; } }
-@media (prefers-reduced-motion: no-preference) { .dot.live { animation: pulse 2.4s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--win) 12%, transparent); } } }
-a { color: var(--accent); }
+td.main { font-weight: 600; }
+td.dim { color: var(--muted); }
+.grade { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 7px; font-family: var(--mono); font-weight: 600; font-size: 12px; }
+.grade.S { color: var(--s); background: var(--s-soft); } .grade.A { color: var(--a); background: var(--a-soft); }
+.grade.B { color: var(--b); background: var(--b-soft); } .grade.C { color: var(--c); background: var(--c-soft); }
+.path { color: var(--faint); font-family: var(--mono); font-size: 11px; margin-left: 6px; }
+.score { color: var(--muted); font-family: var(--mono); font-size: 11.5px; margin-left: 6px; }
+.rungs { display: inline-flex; gap: 5px; }
+.rung { height: 20px; min-width: 34px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; display: inline-grid; place-items: center; color: var(--faint); }
+.rung.hit { background: var(--win-soft); color: var(--win); border-color: transparent; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--c-soft); color: var(--c); }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.targets { background: var(--win-soft); color: var(--win); }
+.pill.invalidated, .pill.stop { background: var(--loss-soft); color: var(--loss); }
+.pill.open { background: var(--b-soft); color: var(--b); }
+.pill.session_end { background: var(--c-soft); color: var(--c); }
+td.fills { font-family: var(--mono); font-size: 12px; color: var(--ink-2); white-space: normal; min-width: 200px; line-height: 1.6; }
+.fills span { display: block; }
+.empty { padding: 28px 18px; color: var(--muted); text-align: center; }
+
+/* charts */
+svg.chart { display: block; width: 100%; height: 190px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); padding: 0 18px 14px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* calibration */
+.calib { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+@media (max-width: 440px) { .calib { grid-template-columns: 1fr; } }
+.cal { padding: 14px 16px 8px; overflow-x: auto; }
+.cal h3 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
+.cal table { table-layout: auto; }
+.cal table th, .cal table td { padding: 7px 8px; font-size: 12.5px; }
+.cal table th:first-child, .cal table td:first-child { padding-left: 0; }
+.cal table th:last-child, .cal table td:last-child { padding-right: 0; }
+.cal td.barcell { width: 28%; min-width: 72px; }
+.bar { height: 6px; border-radius: 3px; background: var(--line-2); position: relative; width: 100%; min-width: 56px; }
+.bar > i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; background: var(--accent); }
+ul.lessons { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+ul.lessons li { padding-left: 18px; position: relative; color: var(--ink-2); }
+ul.lessons li::before { content: ""; position: absolute; left: 0; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.foot { color: var(--faint); font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 20px; padding-top: 4px; }
+details.read { white-space: normal; max-width: 520px; }
+details.read summary { cursor: pointer; color: var(--faint); font-size: 11.5px; list-style: none; }
+details.read summary::-webkit-details-marker { display: none; }
+details.read div { color: var(--muted); font-size: 12px; padding-top: 4px; line-height: 1.45; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: no-preference) { .dot.live { animation: pulse 2.4s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--win) 10%, transparent); } } }
+@media (max-width: 640px) { body { padding-block: 18px 40px; } .kpi { padding: 14px 16px; } .kpi .v { font-size: 22px; } .wrap { gap: 20px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <h1>Vayen 0DTE Desk</h1>
-    <span class="day" id="day">—</span>
-    <span class="status" id="status"><span class="dot" id="dot"></span><span id="status-text">loading…</span></span>
+    <div class="brand">
+      <div class="mark">V</div>
+      <div><h1>Vayen 0DTE Desk</h1><div class="sub" id="day">—</div></div>
+    </div>
+    <div class="status"><span class="dot" id="dot"></span><span id="status-text">loading…</span><span class="t" id="status-time"></span></div>
+    <div class="chips" id="watchlist"></div>
   </header>
-  <div class="chips" id="watchlist"></div>
 
-  <div class="tiles" id="tiles"></div>
+  <div class="strip" id="strip"></div>
 
-  <section id="trades-section">
-    <h2>Paper trades <small id="trades-sub"></small></h2>
-    <div class="panel scroll"><table id="trades"><thead><tr>
-      <th>Time</th><th>Contract</th><th>Grade</th><th class="num">Qty</th><th class="num">Bought</th><th>Sold</th><th class="num">Realized</th><th>State</th>
-    </tr></thead><tbody></tbody></table></div>
-  </section>
+  <div class="row">
+    <section id="curve-section">
+      <div class="sec-h"><h2>Bankroll today</h2><span class="count" id="curve-sub"></span></div>
+      <div class="panel">
+        <svg class="chart" id="curve" viewBox="0 0 1000 190" preserveAspectRatio="none" aria-label="Bankroll through the day, stepping at each realized trade"></svg>
+        <div class="legend"><span><i style="background:var(--accent)"></i>bankroll after each closed paper trade</span><span><i style="background:var(--line)"></i>starting bankroll</span></div>
+      </div>
+    </section>
+    <section id="trades-section">
+      <div class="sec-h"><h2>Paper trades</h2><span class="count" id="trades-count"></span><span class="right" id="trades-sub"></span></div>
+      <div class="panel scroll"><table id="trades"><thead><tr>
+        <th>Time</th><th>Contract</th><th>Grade</th><th>Fills</th><th class="num">Realized</th>
+      </tr></thead><tbody></tbody></table></div>
+    </section>
+  </div>
 
   <section id="setups-section">
-    <h2>Every callout today <small id="setups-sub"></small></h2>
-    <div class="panel"><svg class="spark" id="spark" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-label="Net return of each callout, in order"></svg></div>
+    <div class="sec-h"><h2>Every callout</h2><span class="count" id="setups-count"></span><span class="right" id="setups-sub"></span></div>
+    <div class="panel"><svg class="chart" id="spark" viewBox="0 0 1000 190" preserveAspectRatio="none" aria-label="Net return of each callout under the plan, in order"></svg>
+      <div class="legend"><span><i style="background:var(--win)"></i>finished up</span><span><i style="background:var(--loss)"></i>finished down</span><span><i style="background:transparent;border:2px solid var(--ink);box-sizing:border-box"></i>paper traded</span></div></div>
     <div class="panel scroll"><table id="setups"><thead><tr>
-      <th>Time</th><th>Contract</th><th>Lane · trigger</th><th>Grade</th><th class="num">Score</th><th class="num">Buy</th><th>Targets hit</th><th class="num">Net</th><th class="num">High</th><th class="num">Low</th><th>Ended</th>
+      <th>Time</th><th>Contract</th><th>Lane · trigger</th><th>Grade</th><th class="num">Buy</th><th>Targets</th><th class="num">Net</th><th class="num">High</th><th class="num">Low</th><th>Ended</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
 
   <section id="calib-section">
-    <h2>Running calibration <small id="calib-sub"></small></h2>
+    <div class="sec-h"><h2>Running calibration</h2><span class="count" id="calib-sub"></span><span class="right">win rate · net · high · reached the first target</span></div>
     <div class="calib" id="calib"></div>
-    <div class="panel"><ul class="lessons" id="lessons"></ul></div>
+    <div class="panel pad"><ul class="lessons" id="lessons"></ul></div>
   </section>
 
   <div class="foot">
     <span id="generated"></span>
-    <span>Buy = the ask at the callout · plan: ⅓ at +35% / +50% / +100%, flat after the last · net = the whole position under the plan</span>
+    <span>Buy is the ask at the callout. Plan: a third at +35%, +50% and +100%, flat after the last. Net is the whole position under the plan.</span>
     <span>Information only, not advice.</span>
   </div>
 </div>
@@ -142,110 +204,120 @@ a { color: var(--accent); }
   const REFRESH_MS = 60000;
   const $ = (id) => document.getElementById(id);
   const fmtPct = (v, d = 1) => (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(d) + "%";
-  const fmtUsd = (v) => (v == null || isNaN(v)) ? "—" : (v < 0 ? "−" : "") + "$" + Math.abs(Number(v)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtUsd = (v, d = 2) => (v == null || isNaN(v)) ? "—" : (v < 0 ? "−" : "") + "$" + Math.abs(Number(v)).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
   const sign = (v) => v > 0 ? "pos" : v < 0 ? "neg" : "zero";
-  const esc = (s) => String(s == null ? "" : s);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const td = (text, cls) => el("td", cls, text);
+  const css = () => getComputedStyle(document.documentElement);
 
-  function gradeCell(g0, g, score) {
+  function gradeCell(s, withScore) {
     const c = el("td");
-    const b = el("span", "grade " + esc(g0), esc(g0)); c.appendChild(b);
-    if (g && g !== g0) c.appendChild(el("span", "path", "→ " + esc(g)));
+    c.appendChild(el("span", "grade " + s.grade0, s.grade0));
+    if (withScore) c.appendChild(el("span", "score", String(s.score0)));
+    if (s.grade && s.grade !== s.grade0) c.appendChild(el("span", "path", "→ " + s.grade));
     return c;
   }
-  function outcome(s) {
+  function pill(s) {
     const r = s.status === "open" ? "open" : (s.close_reason || "closed");
-    const o = el("span", "outcome " + esc(r), r === "targets" ? "done " + esc(s.closed) : r === "open" ? "open" : esc(r === "invalidated" ? "EXIT " + s.closed : r === "session_end" ? "close " + s.closed : r.toUpperCase() + " " + s.closed));
-    return o;
+    const label = r === "targets" ? "all targets · " + s.closed : r === "open" ? "open" : r === "invalidated" ? "exit · " + s.closed : r === "session_end" ? "close · " + s.closed : r + " · " + s.closed;
+    return el("span", "pill " + r, label);
   }
   function rungs(s) {
     const w = el("span", "rungs");
     (s.ladder_pct || []).forEach((p, i) => {
       const hit = s.hits && s.hits[i];
-      const r = el("span", "rung" + (hit ? " hit" : ""), "+" + Math.round(p));
-      r.title = hit ? ("+" + p + "% at " + hit) : ("+" + p + "% not reached");
+      const r = el("span", "rung" + (hit ? " hit" : ""), hit ? hit : "+" + Math.round(p));
+      r.title = (hit ? "+" + p + "% hit at " + hit : "+" + p + "% not reached");
       w.appendChild(r);
     });
     return w;
   }
 
   function render(d) {
+    // status
     const scan = d.last_scan || "";
-    const now = new Date();
     let ageMin = null;
     const m = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/.exec(scan);
     if (m) {
-      // the scan time is Eastern; compare against the viewer's clock expressed in Eastern
-      const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(now);
-      const get = (t) => parts.find(p => p.type === t).value;
-      const nowEt = Date.UTC(+get("year"), +get("month") - 1, +get("day"), +get("hour") % 24, +get("minute"), +get("second"));
-      const scanEt = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]);
-      ageMin = Math.round((nowEt - scanEt) / 60000);
+      const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date());
+      const g = (t) => parts.find(p => p.type === t).value;
+      const nowEt = Date.UTC(+g("year"), +g("month") - 1, +g("day"), +g("hour") % 24, +g("minute"), +g("second"));
+      ageMin = Math.round((nowEt - Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) / 60000);
     }
-    const dot = $("dot");
-    dot.className = "dot " + (ageMin == null ? "" : ageMin <= 3 ? "live" : ageMin <= 20 ? "stale" : "");
-    $("status-text").textContent = scan ? ("last scan " + scan.replace(/^\d{4}-\d{2}-\d{2} /, "") + (ageMin == null ? "" : ageMin <= 1 ? " · live" : " · " + ageMin + " min ago")) : "no scan yet";
-    $("day").textContent = d.day ? new Date(d.day + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : "";
-
+    $("dot").className = "dot " + (ageMin == null ? "" : ageMin <= 3 ? "live" : ageMin <= 20 ? "stale" : "");
+    $("status-text").textContent = ageMin == null ? "no scan yet" : ageMin <= 1 ? "scanning" : ageMin < 60 ? "last scan " + ageMin + " min ago" : "market closed";
+    $("status-time").textContent = scan ? scan.replace(/^\d{4}-\d{2}-\d{2} /, "").replace(" ET", "") + " ET" : "";
+    $("day").textContent = d.day ? new Date(d.day + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "";
     const wl = $("watchlist"); wl.textContent = "";
-    (d.watchlist || []).forEach(s => wl.appendChild(el("span", "chip on", s)));
+    (d.watchlist || []).forEach(s => wl.appendChild(el("span", "chip", s)));
 
+    // summary
     const acct = d.account || {};
     const setups = d.setups || [];
+    const trades = d.paper_trades || [];
     const closed = setups.filter(s => s.status !== "open");
     const wins = closed.filter(s => s.net_pct > 0).length;
     const equity = acct.equity, bankroll = acct.bankroll;
-    const eqChange = (equity != null && bankroll) ? equity - bankroll : null;
-    const grades = ["S", "A", "B", "C"].map(g => g + " " + setups.filter(s => s.grade0 === g).length).join(" · ");
-    const tiles = [
-      { k: "Bot bankroll", v: equity != null ? fmtUsd(equity) : "—", cls: sign(eqChange || 0), sub: bankroll ? ("started " + fmtUsd(bankroll) + " · " + (eqChange >= 0 ? "+" : "−") + fmtUsd(Math.abs(eqChange)).replace("$", "$") + " (" + fmtPct(100 * eqChange / bankroll, 0) + ")") : "no bankroll set" },
-      { k: "Realized today", v: fmtUsd(d.realized_today || 0), cls: sign(d.realized_today || 0), sub: (d.paper_trades || []).length + " paper trade" + ((d.paper_trades || []).length === 1 ? "" : "s") + (acct.day_pl != null ? " · account day P&L " + fmtUsd(acct.day_pl) : "") },
-      { k: "Callouts today", v: String(setups.length), cls: "", sub: grades },
-      { k: "Win rate today", v: closed.length ? Math.round(100 * wins / closed.length) + "%" : "—", cls: closed.length ? (wins / closed.length >= 0.5 ? "pos" : "neg") : "", sub: closed.length ? (wins + " of " + closed.length + " closed · " + (setups.length - closed.length) + " open") : "nothing closed yet" },
+    const change = (equity != null && bankroll) ? equity - bankroll : null;
+    const tw = trades.filter(s => s.paper && s.paper.realized > 0).length, tl = trades.filter(s => s.paper && s.paper.realized < 0).length;
+    const kpis = [
+      { k: "Bot bankroll", v: equity != null ? fmtUsd(equity, 0) : "—", cls: sign(change || 0),
+        d: bankroll ? ["started at " + fmtUsd(bankroll, 0) + " · ", el("b", sign(change), (change >= 0 ? "+" : "−") + fmtUsd(Math.abs(change), 0) + " (" + fmtPct(100 * change / bankroll, 0) + ")")] : ["no bankroll set"] },
+      { k: "Realized today", v: fmtUsd(d.realized_today || 0, 0), cls: sign(d.realized_today || 0),
+        d: [trades.length + " paper trade" + (trades.length === 1 ? "" : "s") + (trades.length ? " · " + tw + " won, " + tl + " lost" : "") + (acct.day_pl != null ? " · account " + fmtUsd(acct.day_pl) : "")] },
+      { k: "Callouts", v: String(setups.length), cls: "", d: [["S", "A", "B", "C"].map(g => g + " " + setups.filter(s => s.grade0 === g).length).join("  ·  ")] },
+      { k: "Hit rate", v: closed.length ? Math.round(100 * wins / closed.length) + "%" : "—", cls: closed.length ? (wins / closed.length >= 0.5 ? "pos" : "neg") : "",
+        d: closed.length ? [wins + " of " + closed.length + " closed finished up · " + (setups.length - closed.length) + " open"] : ["nothing closed yet"] },
     ];
-    const tl = $("tiles"); tl.textContent = "";
-    tiles.forEach(t => { const c = el("div", "tile"); c.appendChild(el("div", "k", t.k)); c.appendChild(el("div", "v " + t.cls, t.v)); c.appendChild(el("div", "sub", t.sub)); tl.appendChild(c); });
+    const strip = $("strip"); strip.textContent = "";
+    kpis.forEach(t => { const c = el("div", "kpi"); c.appendChild(el("div", "k", t.k)); c.appendChild(el("div", "v " + t.cls, t.v)); const dd = el("div", "d"); t.d.forEach(x => dd.appendChild(typeof x === "string" ? document.createTextNode(x) : x)); c.appendChild(dd); strip.appendChild(c); });
+
+    // bankroll curve
+    drawCurve(trades, bankroll, equity);
+    $("curve-sub").textContent = bankroll ? "stepping at each closed paper trade" : "";
 
     // paper trades
     const tb = $("trades").querySelector("tbody"); tb.textContent = "";
-    const trades = d.paper_trades || [];
-    $("trades-sub").textContent = trades.length ? (acct.label ? "on the " + acct.label : "") : "none yet — the bot buys S, A and high-confluence B callouts";
-    if (!trades.length) { const r = el("tr"); const c = td("No paper trades today.", "empty"); c.colSpan = 8; r.appendChild(c); tb.appendChild(r); }
+    $("trades-count").textContent = trades.length ? String(trades.length) : "";
+    $("trades-sub").textContent = trades.length ? (acct.label || "") : "the bot buys S, A and high-confluence B callouts";
+    if (!trades.length) { const r = el("tr"); const c = td("No paper trades yet today.", "empty"); c.colSpan = 5; r.appendChild(c); tb.appendChild(r); }
     trades.forEach(s => {
       const p = s.paper || {};
       const r = el("tr");
-      r.appendChild(td(s.posted)); r.appendChild(td(s.label));
-      r.appendChild(gradeCell(s.grade0, s.grade, s.score0));
-      r.appendChild(td(String(p.qty || ""), "num"));
-      r.appendChild(td(p.entry_avg ? "$" + Number(p.entry_avg).toFixed(2) : (p.entry_status || "").toLowerCase(), "num"));
-      const sold = (p.sells || []).filter(x => x.status === "FILLED").map(x => x.qty + " @ $" + Number(x.avg || x.price).toFixed(2) + " (+" + Math.round(x.pct) + "%)");
-      if (p.exit && p.exit.status === "FILLED") sold.push(p.exit.qty + " @ $" + (p.exit.avg != null ? Number(p.exit.avg).toFixed(2) : "mkt") + " (" + (p.exit.reason || "exit") + ")");
-      r.appendChild(td(sold.join(" · ") || "resting at targets"));
+      r.appendChild(td(s.posted, "dim"));
+      r.appendChild(td(s.label, "main"));
+      r.appendChild(gradeCell(s, false));
+      const f = el("td", "fills");
+      f.appendChild(el("span", null, "buy " + (p.qty || "") + (p.entry_avg ? " @ $" + Number(p.entry_avg).toFixed(2) : " · " + String(p.entry_status || "").toLowerCase())));
+      (p.sells || []).filter(x => x.status === "FILLED").forEach(x => f.appendChild(el("span", "pos", "+" + Math.round(x.pct) + "%  sold " + x.qty + " @ $" + Number(x.avg || x.price).toFixed(2))));
+      if (p.exit && p.exit.status === "FILLED") f.appendChild(el("span", null, (p.exit.reason === "invalidated" ? "exit" : p.exit.reason || "exit") + "  sold " + p.exit.qty + " @ " + (p.exit.avg != null ? "$" + Number(p.exit.avg).toFixed(2) : "market")));
+      const left = (p.sells || []).filter(x => x.status !== "FILLED" && x.status !== "CANCELLED" && x.status !== "CANCELED").length;
+      if (s.status === "open" && left) f.appendChild(el("span", "dim", left + " sell" + (left > 1 ? "s" : "") + " resting"));
+      r.appendChild(f);
       const rz = p.realized;
-      r.appendChild(td(rz == null ? "open" : fmtUsd(rz), "num " + (rz == null ? "zero" : sign(rz))));
-      const st = el("td"); st.appendChild(outcome(s)); r.appendChild(st);
+      r.appendChild(td(rz == null ? "open" : fmtUsd(rz, 0), "num " + (rz == null ? "zero" : sign(rz))));
       tb.appendChild(r);
     });
 
-    // every callout
+    // callouts
     const sb = $("setups").querySelector("tbody"); sb.textContent = "";
+    $("setups-count").textContent = setups.length ? String(setups.length) : "";
     $("setups-sub").textContent = setups.length ? (closed.length + " closed · " + (setups.length - closed.length) + " open") : "the scanner has not posted anything yet";
-    if (!setups.length) { const r = el("tr"); const c = td("No callouts yet today.", "empty"); c.colSpan = 11; r.appendChild(c); sb.appendChild(r); }
+    if (!setups.length) { const r = el("tr"); const c = td("No callouts yet today.", "empty"); c.colSpan = 10; r.appendChild(c); sb.appendChild(r); }
     setups.forEach(s => {
       const r = el("tr");
-      r.appendChild(td(s.posted));
-      const lc = td(s.label); if (s.read_path) { const dd = el("details", "read"); dd.appendChild(el("summary", null, "read")); dd.appendChild(el("div", null, s.read_path)); lc.appendChild(dd); }
+      r.appendChild(td(s.posted, "dim"));
+      const lc = td(s.label, "main");
+      if (s.read_path) { const dd = el("details", "read"); dd.appendChild(el("summary", null, "why")); dd.appendChild(el("div", null, s.read_path)); lc.appendChild(dd); }
       r.appendChild(lc);
-      r.appendChild(td((s.lane ? s.lane + "m" : "") + (s.trigger ? " · " + s.trigger.replace("_", " ") : "")));
-      r.appendChild(gradeCell(s.grade0, s.grade, s.score0));
-      r.appendChild(td(String(s.score0), "num"));
+      r.appendChild(td((s.lane ? s.lane + "m" : "—") + (s.trigger ? " · " + s.trigger.replace(/_/g, " ") : ""), "dim"));
+      r.appendChild(gradeCell(s, true));
       r.appendChild(td("$" + Number(s.buy).toFixed(2), "num"));
       const rc = el("td"); rc.appendChild(rungs(s)); r.appendChild(rc);
       r.appendChild(td(fmtPct(s.net_pct), "num " + sign(s.net_pct)));
-      r.appendChild(td(fmtPct(s.high_pct, 0), "num pos"));
-      r.appendChild(td(fmtPct(s.low_pct, 0), "num neg"));
-      const oc = el("td"); oc.appendChild(outcome(s)); r.appendChild(oc);
+      r.appendChild(td(fmtPct(s.high_pct, 0), "num"));
+      r.appendChild(td(fmtPct(s.low_pct, 0), "num"));
+      const oc = el("td"); oc.appendChild(pill(s)); r.appendChild(oc);
       sb.appendChild(r);
     });
     drawSpark(setups);
@@ -253,58 +325,121 @@ a { color: var(--accent); }
     // calibration
     const cal = $("calib"); cal.textContent = "";
     const tables = d.calibration || {};
-    const order = ["grade", "lane", "hour", "B score", "trigger", "kind"];
-    $("calib-sub").textContent = (d.closed_all_time || 0) + " closed setups across every day the bot has run";
-    order.filter(t => tables[t] && tables[t].length).forEach(t => {
-      const p = el("div", "panel"); p.appendChild(el("h3", null, t === "B score" ? "B by score" : t === "hour" ? "hour band" : t));
+    const names = { grade: "By grade", lane: "By lane", hour: "By hour band", "B score": "B grades by score", trigger: "By trigger", kind: "By kind" };
+    ["grade", "lane", "hour", "B score", "trigger", "kind"].filter(t => tables[t] && tables[t].length).forEach(t => {
+      const p = el("div", "panel cal"); p.appendChild(el("h3", null, names[t]));
       const tbl = el("table"); const th = el("thead"); const hr = el("tr");
-      [["", ""], ["n", "num"], ["win", "num"], ["net", "num"], ["high", "num"], ["reached +35%", ""]].forEach(([h, c]) => hr.appendChild(el("th", c, h)));
+      [["", ""], ["n", "num"], ["win", "num"], ["net", "num"], ["high", "num"], ["+35%", ""]].forEach(([h, c]) => hr.appendChild(el("th", c, h)));
       th.appendChild(hr); tbl.appendChild(th);
       const bd = el("tbody");
       tables[t].forEach(row => {
         const r = el("tr");
-        const first = td(row.bucket); if (t === "grade") { first.textContent = ""; first.appendChild(el("span", "grade " + row.bucket, row.bucket)); }
+        const first = td(row.bucket, "main"); if (t === "grade") { first.textContent = ""; first.appendChild(el("span", "grade " + row.bucket, row.bucket)); }
         r.appendChild(first);
-        r.appendChild(td(String(row.n), "num"));
+        r.appendChild(td(String(row.n), "num dim"));
         r.appendChild(td(row.win_pct + "%", "num " + (row.win_pct >= 50 ? "pos" : "neg")));
         r.appendChild(td(fmtPct(row.net), "num " + sign(row.net)));
-        r.appendChild(td(fmtPct(row.high, 0), "num"));
-        const bc = el("td"); const bar = el("div", "bar"); const fill = el("i"); fill.style.width = Math.max(0, Math.min(100, row.t1_pct)) + "%"; bar.appendChild(fill); bar.title = row.t1_pct + "% reached the first target"; bc.appendChild(bar); r.appendChild(bc);
+        r.appendChild(td(fmtPct(row.high, 0), "num dim"));
+        const bc = el("td", "barcell"); const bar = el("div", "bar"); const fill = el("i"); fill.style.width = Math.max(0, Math.min(100, row.t1_pct)) + "%"; bar.appendChild(fill); bar.title = row.t1_pct + "% reached +35%"; bc.appendChild(bar); r.appendChild(bc);
         bd.appendChild(r);
       });
       tbl.appendChild(bd); p.appendChild(tbl); cal.appendChild(p);
     });
+    $("calib-sub").textContent = (d.closed_all_time || 0) + " closed setups, all days";
     const ls = $("lessons"); ls.textContent = "";
     (d.lessons || []).forEach(x => ls.appendChild(el("li", null, x)));
     $("generated").textContent = d.generated ? "Snapshot " + d.generated.replace("T", " ").replace(/\.\d+/, "").replace(/-05:00|-04:00/, " ET") : "";
   }
 
+  function svgEl(ns, tag, attrs) { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function sized(svg, H) {
+    // draw in CSS pixels: the viewBox follows the element's real width, so text is never stretched
+    const W = Math.max(320, Math.round(svg.clientWidth || svg.parentNode.clientWidth || 1000));
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    return W;
+  }
+
+  function drawCurve(trades, bankroll, equity) {
+    const svg = $("curve");
+    const ns = "http://www.w3.org/2000/svg";
+    const H = 190, L = 64, R = 20, T = 16, B = 32;
+    const W = sized(svg, H);
+    const c = css();
+    if (!bankroll) { svg.appendChild(svgEl(ns, "text", { x: L, y: 100, fill: c.getPropertyValue("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = "No bankroll configured."; return; }
+    const pts = [{ t: "open", v: bankroll }];
+    let eq = bankroll;
+    trades.filter(s => s.paper && s.paper.realized != null).forEach(s => { eq += s.paper.realized; pts.push({ t: s.closed || s.posted, v: eq, label: s.label, d: s.paper.realized }); });
+    if (equity != null) pts.push({ t: "now", v: equity, now: true });
+    const vals = pts.map(p => p.v);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const span = Math.max(hi - lo, bankroll * 0.08); lo = Math.min(lo, bankroll) - span * 0.15; hi = Math.max(hi, bankroll) + span * 0.15;
+    const x = (i) => L + (W - L - R) * (pts.length === 1 ? 0 : i / (pts.length - 1));
+    const y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+    // gridlines: 4
+    for (let k = 0; k <= 4; k++) {
+      const v = lo + (hi - lo) * k / 4;
+      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: c.getPropertyValue("--line-2"), "stroke-width": 1 }));
+      const t = svgEl(ns, "text", { x: L - 10, y: y(v) + 4, "text-anchor": "end", fill: c.getPropertyValue("--faint"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); t.textContent = "$" + Math.round(v); svg.appendChild(t);
+    }
+    svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(bankroll), y2: y(bankroll), stroke: c.getPropertyValue("--line"), "stroke-width": 1.5, "stroke-dasharray": "4 4" }));
+    // step path
+    let dpath = "", area = "";
+    pts.forEach((p, i) => { const px = x(i), py = y(p.v); if (i === 0) { dpath = "M" + px + "," + py; area = "M" + px + "," + y(bankroll) + " L" + px + "," + py; } else { const prev = y(pts[i - 1].v); dpath += " L" + px + "," + prev + " L" + px + "," + py; area += " L" + px + "," + prev + " L" + px + "," + py; } });
+    area += " L" + x(pts.length - 1) + "," + y(bankroll) + " Z";
+    svg.appendChild(svgEl(ns, "path", { d: area, fill: c.getPropertyValue("--accent"), opacity: 0.12 }));
+    svg.appendChild(svgEl(ns, "path", { d: dpath, fill: "none", stroke: c.getPropertyValue("--accent"), "stroke-width": 2.5, "stroke-linejoin": "round" }));
+    let lastLabelX = -1e9;
+    pts.forEach((p, i) => {
+      if (i === 0) return;
+      const dot = svgEl(ns, "circle", { cx: x(i), cy: y(p.v), r: p.now ? 5 : 4, fill: p.now ? c.getPropertyValue("--accent") : c.getPropertyValue("--panel"), stroke: c.getPropertyValue("--accent"), "stroke-width": 2 });
+      const title = document.createElementNS(ns, "title"); title.textContent = p.now ? "now · $" + p.v.toFixed(2) : p.t + " " + p.label + " " + (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0) + " → $" + p.v.toFixed(0); dot.appendChild(title); svg.appendChild(dot);
+      const isLast = i === pts.length - 1;
+      const lx = x(i);
+      if (isLast || lx - lastLabelX > 48) {                       // skip labels that would collide
+        const lab = svgEl(ns, "text", { x: lx, y: H - 10, "text-anchor": isLast ? "end" : "middle", fill: c.getPropertyValue("--muted"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); lab.textContent = p.now ? "now" : p.t; svg.appendChild(lab);
+        lastLabelX = lx;
+      }
+      if (!p.now) {
+        const v = svgEl(ns, "text", { x: lx, y: y(p.v) - 9, "text-anchor": "middle", fill: c.getPropertyValue(p.d >= 0 ? "--win" : "--loss"), "font-size": 11, "font-weight": 600, "font-family": "JetBrains Mono, monospace" }); v.textContent = (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0); svg.appendChild(v);
+      }
+    });
+    const open = svgEl(ns, "text", { x: L, y: H - 10, "text-anchor": "start", fill: c.getPropertyValue("--muted"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); open.textContent = "open"; svg.appendChild(open);
+  }
+
   function drawSpark(setups) {
     const svg = $("spark");
-    while (svg.firstChild) svg.removeChild(svg.firstChild);
     const ns = "http://www.w3.org/2000/svg";
-    const W = 1000, H = 120, pad = 10;
+    const H = 190, L = 52, R = 20, T = 16, B = 28;
+    const W = sized(svg, H);
+    const c = css();
     const n = setups.length;
-    if (!n) { const t = document.createElementNS(ns, "text"); t.setAttribute("x", 16); t.setAttribute("y", 64); t.setAttribute("fill", "currentColor"); t.setAttribute("font-size", "16"); t.textContent = "No callouts yet."; svg.appendChild(t); return; }
+    if (!n) { svg.appendChild(svgEl(ns, "text", { x: L, y: 100, fill: c.getPropertyValue("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = "No callouts yet."; return; }
     const vals = setups.map(s => s.net_pct || 0);
-    const max = Math.max(10, ...vals.map(Math.abs));
-    const zero = H / 2;
-    const base = document.createElementNS(ns, "line"); base.setAttribute("x1", pad); base.setAttribute("x2", W - pad); base.setAttribute("y1", zero); base.setAttribute("y2", zero); base.setAttribute("stroke", "currentColor"); base.setAttribute("opacity", "0.25"); svg.appendChild(base);
-    const slot = (W - 2 * pad) / n, bw = Math.min(40, slot * 0.6);
-    const css = getComputedStyle(document.documentElement);
+    const max = Math.max(20, Math.ceil(Math.max(...vals.map(Math.abs)) / 20) * 20);
+    const y = (v) => T + (H - T - B) * (1 - (v + max) / (2 * max));
+    [-max, -max / 2, 0, max / 2, max].forEach(v => {
+      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: c.getPropertyValue(v === 0 ? "--line" : "--line-2"), "stroke-width": v === 0 ? 1.5 : 1 }));
+      const t = svgEl(ns, "text", { x: L - 10, y: y(v) + 4, "text-anchor": "end", fill: c.getPropertyValue("--faint"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); t.textContent = (v > 0 ? "+" : "") + v + "%"; svg.appendChild(t);
+    });
+    const slot = (W - L - R) / n, bw = Math.max(6, Math.min(40, slot * 0.6));
+    const labelEvery = Math.max(1, Math.ceil(44 / slot));            // keep time labels from overlapping when crowded
     setups.forEach((s, i) => {
       const v = s.net_pct || 0;
-      const h = Math.abs(v) / max * (zero - pad);
-      const r = document.createElementNS(ns, "rect");
-      r.setAttribute("x", pad + i * slot + (slot - bw) / 2); r.setAttribute("width", bw);
-      r.setAttribute("y", v >= 0 ? zero - h : zero); r.setAttribute("height", Math.max(1.5, h)); r.setAttribute("rx", 3);
-      r.setAttribute("fill", v > 0 ? css.getPropertyValue("--win") : v < 0 ? css.getPropertyValue("--loss") : css.getPropertyValue("--flat"));
-      if (s.paper) { r.setAttribute("stroke", css.getPropertyValue("--ink")); r.setAttribute("stroke-width", "2"); }
-      const title = document.createElementNS(ns, "title"); title.textContent = s.posted + " " + s.label + " [" + s.grade0 + "] " + fmtPct(v) + (s.paper ? " · paper traded" : ""); r.appendChild(title);
+      const x0 = L + i * slot + (slot - bw) / 2;
+      const r = svgEl(ns, "rect", { x: x0, width: bw, y: Math.min(y(v), y(0)), height: Math.max(2, Math.abs(y(v) - y(0))), rx: 3,
+        fill: c.getPropertyValue(v > 0 ? "--win" : v < 0 ? "--loss" : "--flat"), opacity: s.status === "open" ? 0.45 : 1 });
+      if (s.paper) { r.setAttribute("stroke", c.getPropertyValue("--ink")); r.setAttribute("stroke-width", "2"); }
+      const title = document.createElementNS(ns, "title"); title.textContent = s.posted + " " + s.label + " · " + s.grade0 + " " + s.score0 + " · " + fmtPct(v) + (s.paper ? " · paper traded" : "") + (s.status === "open" ? " · open" : ""); r.appendChild(title);
       svg.appendChild(r);
+      if (i % labelEvery === 0) {
+        const lab = svgEl(ns, "text", { x: x0 + bw / 2, y: H - 9, "text-anchor": "middle", fill: c.getPropertyValue("--faint"), "font-size": 10.5, "font-family": "JetBrains Mono, monospace" }); lab.textContent = s.posted; svg.appendChild(lab);
+      }
     });
-    const t = document.createElementNS(ns, "text"); t.setAttribute("x", W - pad); t.setAttribute("y", 14); t.setAttribute("text-anchor", "end"); t.setAttribute("fill", "currentColor"); t.setAttribute("opacity", "0.6"); t.setAttribute("font-size", "11"); t.setAttribute("font-family", "IBM Plex Mono, monospace"); t.textContent = "net % per callout · outlined = paper traded · scale ±" + Math.round(max) + "%"; svg.appendChild(t);
   }
+  let resizeTimer = null;
+  window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (last) render(last); }, 150); });
 
   let last = null;
   async function load() {
@@ -315,7 +450,7 @@ a { color: var(--accent); }
       const d = await res.json();
       last = d; render(d);
     } catch (e) {
-      $("status-text").textContent = last ? ($("status-text").textContent + " · refresh failed") : ("could not load data (" + e.message + ")");
+      $("status-text").textContent = last ? "refresh failed" : "could not load data (" + e.message + ")";
       $("dot").className = "dot stale";
     }
   }
