@@ -7,205 +7,209 @@
 <meta name="description" content="Live board for the Vayen 0DTE options bot: bankroll, callouts, grades, paper trades and the running calibration.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
 <style>
-/* Layout: product page on an 8px grid. Sticky nav → bankroll hero with the equity curve → four soft stat cards →
-   paper ledger → filterable callout ledger → calibration board. Surfaces instead of borders; one blue accent;
-   green/red reserved for money. */
+/* Layout: a dark operations console, committed to one look. Deep ground with a faint grid and a cyan glow, glass
+   modules with luminous edges and bracketed corners, HUD mono labels, one electric accent, green/red only for money.
+   Sticky nav + ticker → bankroll hero with glowing equity curve → readout modules → ledgers → calibration grid. */
 :root {
-  --bg: #f7f8fa; --surface: #ffffff; --surface-2: #f1f3f6; --ink: #0f1420; --ink-2: #39414f; --muted: #6b7280; --faint: #a0a7b4;
-  --line: #e7e9ee; --line-2: #eff1f5; --hover: #f5f7fa;
-  --accent: #2563eb; --accent-2: #1d4ed8; --accent-soft: #e8efff; --on-accent: #ffffff;
-  --win: #16a34a; --win-soft: #e7f7ec; --loss: #dc2626; --loss-soft: #fdeaea; --flat: #8b93a1;
-  --s: #b45309; --s-soft: #fdf1dc; --a: #15803d; --a-soft: #e7f7ec; --b: #2563eb; --b-soft: #e8efff; --c: #6b7280; --c-soft: #eef0f4;
-  --shadow: 0 1px 2px rgba(15, 20, 32, 0.04), 0 4px 16px rgba(15, 20, 32, 0.04);
-  --shadow-sm: 0 1px 2px rgba(15, 20, 32, 0.05);
-  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --bg: #06090f; --bg-2: #0a0f17; --glass: rgba(255, 255, 255, 0.028); --glass-2: rgba(255, 255, 255, 0.05);
+  --edge: rgba(120, 170, 255, 0.14); --edge-2: rgba(120, 170, 255, 0.26); --grid: rgba(120, 170, 255, 0.045);
+  --ink: #e8eef7; --ink-2: #b9c4d4; --muted: #7d8aa0; --faint: #4e5a6e;
+  --cyan: #22d3ee; --cyan-2: #67e8f9; --violet: #8b5cf6; --cyan-soft: rgba(34, 211, 238, 0.12);
+  --win: #34d399; --win-soft: rgba(52, 211, 153, 0.13); --loss: #fb7185; --loss-soft: rgba(251, 113, 133, 0.13); --flat: #64748b;
+  --s: #fbbf24; --a: #34d399; --b: #38bdf8; --c: #94a3b8;
+  --display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --r: 16px; --r-sm: 10px;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0a0c10; --surface: #12151b; --surface-2: #181c24; --ink: #edf0f4; --ink-2: #c6ccd6; --muted: #8b93a1; --faint: #5c6473;
-    --line: #222631; --line-2: #1c2029; --hover: #171b22;
-    --accent: #5b8def; --accent-2: #7ca3f5; --accent-soft: #15213a; --on-accent: #0a0c10;
-    --win: #34d399; --win-soft: #0f2a1f; --loss: #f87171; --loss-soft: #351a1a; --flat: #7c8594;
-    --s: #fbbf24; --s-soft: #33280f; --a: #34d399; --a-soft: #0f2a1f; --b: #7ca3f5; --b-soft: #15213a; --c: #9aa2b1; --c-soft: #1c2029;
-    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset; --shadow-sm: none;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0a0c10; --surface: #12151b; --surface-2: #181c24; --ink: #edf0f4; --ink-2: #c6ccd6; --muted: #8b93a1; --faint: #5c6473;
-  --line: #222631; --line-2: #1c2029; --hover: #171b22;
-  --accent: #5b8def; --accent-2: #7ca3f5; --accent-soft: #15213a; --on-accent: #0a0c10;
-  --win: #34d399; --win-soft: #0f2a1f; --loss: #f87171; --loss-soft: #351a1a; --flat: #7c8594;
-  --s: #fbbf24; --s-soft: #33280f; --a: #34d399; --a-soft: #0f2a1f; --b: #7ca3f5; --b-soft: #15213a; --c: #9aa2b1; --c-soft: #1c2029;
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset; --shadow-sm: none;
+  --r: 14px;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5;
-  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-feature-settings: "cv11", "ss03";
-  padding-block: 0 64px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  padding-block: 0 72px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
+  background-image:
+    radial-gradient(900px 420px at 18% -6%, rgba(34, 211, 238, 0.14), transparent 60%),
+    radial-gradient(700px 360px at 92% 4%, rgba(139, 92, 246, 0.12), transparent 60%),
+    linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: auto, auto, 44px 44px, 44px 44px; background-attachment: fixed; }
+body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 3px); }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .pos { color: var(--win); } .neg { color: var(--loss); } .zero { color: var(--flat); }
 a { color: inherit; text-decoration: none; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; border-radius: 6px; }
+.label { font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 
-/* nav */
-.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(160%) blur(12px); -webkit-backdrop-filter: saturate(160%) blur(12px); border-bottom: 1px solid var(--line-2);
+/* nav + ticker */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: rgba(6, 9, 15, 0.72); backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); border-bottom: 1px solid var(--edge);
   margin-left: calc(-1 * max(24px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(24px, env(safe-area-inset-right, 0px)));
   padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
-.nav-in { max-width: 1200px; margin: 0 auto; height: 60px; display: flex; align-items: center; gap: 24px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
-.mark { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-family: var(--mono); font-weight: 600; font-size: 12px; }
-.links { display: flex; gap: 4px; margin-left: 8px; }
-.links a { padding: 6px 10px; border-radius: 8px; color: var(--muted); font-size: 13px; font-weight: 500; }
-.links a:hover { background: var(--surface-2); color: var(--ink); }
-.live { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-sm); border: 1px solid var(--line-2); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
-.live .t { font-family: var(--mono); color: var(--ink-2); }
+.nav-in { max-width: 1240px; margin: 0 auto; height: 58px; display: flex; align-items: center; gap: 22px; }
+.brand { display: flex; align-items: center; gap: 11px; font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.01em; }
+.mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 12px; color: #06090f;
+  background: linear-gradient(135deg, var(--cyan-2), var(--violet)); box-shadow: 0 0 18px rgba(34, 211, 238, 0.45); }
+.links { display: flex; gap: 2px; margin-left: 6px; }
+.links a { padding: 6px 11px; border-radius: 8px; color: var(--muted); font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; }
+.links a:hover { color: var(--cyan-2); background: var(--cyan-soft); }
+.live { margin-left: auto; display: inline-flex; align-items: center; gap: 9px; padding: 7px 13px 7px 11px; border-radius: 999px; background: var(--glass-2); border: 1px solid var(--edge); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.live .t { color: var(--ink-2); letter-spacing: 0; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--flat); }
-.dot.live { background: var(--win); box-shadow: 0 0 0 3px color-mix(in srgb, var(--win) 22%, transparent); }
-.dot.stale { background: var(--s); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s) 22%, transparent); }
-@media (prefers-reduced-motion: no-preference) { .dot.live { animation: pulse 2.2s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--win) 10%, transparent); } } }
+.dot.live { background: var(--cyan); box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.22), 0 0 12px var(--cyan); }
+.dot.stale { background: var(--s); box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2), 0 0 10px var(--s); }
+@media (prefers-reduced-motion: no-preference) { .dot.live { animation: pulse 2s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgba(34, 211, 238, 0.08), 0 0 16px var(--cyan); } } }
+.ticker { position: relative; z-index: 1; overflow: hidden; border-bottom: 1px solid var(--edge); background: rgba(10, 15, 23, 0.6);
+  margin-left: calc(-1 * max(24px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(24px, env(safe-area-inset-right, 0px))); }
+.ticker-in { display: flex; gap: 48px; white-space: nowrap; padding: 8px 0; width: max-content; font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+.ticker-in span { display: inline-flex; gap: 10px; align-items: center; }
+.ticker-in b { color: var(--ink-2); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) { .ticker-in { animation: scroll 70s linear infinite; } @keyframes scroll { to { transform: translateX(-50%); } } }
 @media (max-width: 720px) { .links { display: none; } .live .lbl { display: none; } }
 
-.page { max-width: 1200px; margin: 0 auto; display: grid; gap: 56px; padding-top: 40px; }
-section { display: grid; gap: 20px; min-width: 0; scroll-margin-top: 76px; }
-.sec-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; }
-.sec-h h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
-.sec-h .count { font-family: var(--mono); font-size: 12px; color: var(--muted); background: var(--surface-2); padding: 2px 8px; border-radius: 999px; }
+.page { max-width: 1240px; margin: 0 auto; display: grid; gap: 52px; padding-top: 44px; position: relative; z-index: 1; }
+section { display: grid; gap: 18px; min-width: 0; scroll-margin-top: 110px; }
+.sec-h { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.sec-h h2 { font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.sec-h .count { font-family: var(--mono); font-size: 11.5px; color: var(--cyan-2); background: var(--cyan-soft); border: 1px solid rgba(34, 211, 238, 0.25); padding: 2px 9px; border-radius: 999px; }
 .sec-h .note { color: var(--muted); font-size: 13px; }
 .sec-h .tools { margin-left: auto; display: flex; gap: 10px; align-items: center; }
 
+/* glass modules */
+.mod { position: relative; background: var(--glass); border: 1px solid var(--edge); border-radius: var(--r); min-width: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 20px 50px rgba(0, 0, 0, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.mod.br::before, .mod.br::after { content: ""; position: absolute; width: 14px; height: 14px; border-color: var(--cyan); border-style: solid; opacity: 0.8; pointer-events: none; }
+.mod.br::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-radius: 14px 0 0 0; }
+.mod.br::after { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-radius: 0 0 14px 0; }
+.mod.pad { padding: 20px 22px; }
+.mod-id { position: absolute; top: 12px; right: 16px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--faint); text-transform: uppercase; }
+
 /* hero */
-.hero { display: grid; gap: 24px; }
-.hero-top { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 32px; }
-.eyebrow { font-size: 12.5px; font-weight: 500; color: var(--muted); letter-spacing: 0.02em; text-transform: uppercase; }
-.headline { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-.headline .big { font-family: var(--mono); font-size: 56px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
-.delta { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-family: var(--mono); font-size: 14px; font-weight: 600; }
-.delta.pos { background: var(--win-soft); color: var(--win); } .delta.neg { background: var(--loss-soft); color: var(--loss); } .delta.zero { background: var(--c-soft); color: var(--c); }
-.hero-meta { color: var(--muted); font-size: 13.5px; }
-.hero-meta b { color: var(--ink-2); font-weight: 500; }
-.day { margin-left: auto; text-align: right; color: var(--muted); font-size: 13.5px; }
-.day b { display: block; color: var(--ink); font-weight: 600; font-size: 15px; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 8px; }
-.chip { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); }
-@media (max-width: 720px) { .day { margin-left: 0; text-align: left; } .chips { justify-content: flex-start; } .headline .big { font-size: 44px; } }
-
-.card { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); min-width: 0; }
-.card.pad { padding: 20px 24px; }
-.curve-card { padding: 20px 20px 12px; }
+.hero { display: grid; gap: 22px; }
+.hero-top { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px 32px; }
+.headline { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-top: 6px; }
+.headline .big { font-family: var(--mono); font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums;
+  color: #f4fbff; text-shadow: 0 0 24px rgba(34, 211, 238, 0.55), 0 0 2px rgba(255, 255, 255, 0.6); }
+.delta { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 999px; font-family: var(--mono); font-size: 14px; font-weight: 600; border: 1px solid transparent; }
+.delta.pos { background: var(--win-soft); color: var(--win); border-color: rgba(52, 211, 153, 0.35); box-shadow: 0 0 18px rgba(52, 211, 153, 0.18); }
+.delta.neg { background: var(--loss-soft); color: var(--loss); border-color: rgba(251, 113, 133, 0.35); }
+.delta.zero { background: var(--glass-2); color: var(--muted); border-color: var(--edge); }
+.hero-meta { color: var(--muted); font-size: 13.5px; margin-top: 10px; }
+.hero-meta b { color: var(--ink-2); font-weight: 500; font-family: var(--mono); }
+.day { margin-left: auto; text-align: right; color: var(--muted); font-size: 13px; }
+.day b { display: block; color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 16px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 10px; }
+.chip { font-family: var(--mono); font-size: 11px; padding: 3px 9px; border-radius: 6px; background: var(--glass-2); border: 1px solid var(--edge); color: var(--ink-2); }
+@media (max-width: 720px) { .day { margin-left: 0; text-align: left; } .chips { justify-content: flex-start; } .headline .big { font-size: 46px; } }
+.curve-mod { padding: 22px 20px 12px; }
 svg.chart { display: block; width: 100%; }
-.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--muted); padding: 10px 4px 0; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.legend { display: flex; flex-wrap: wrap; gap: 18px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--muted); padding: 10px 4px 0; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 7px; vertical-align: -1px; }
 
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.stat { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); padding: 18px 20px; min-width: 0; }
-.stat .k { font-size: 12.5px; font-weight: 500; color: var(--muted); }
-.stat .v { font-family: var(--mono); font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.stat .d { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
-.stat .d b { color: var(--ink-2); font-weight: 500; }
-.gradebar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 12px; background: var(--line-2); }
+.readouts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.ro { padding: 18px 20px 16px; }
+.ro .v { font-family: var(--mono); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; margin-top: 10px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.ro .d { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.ro .d b { color: var(--ink-2); font-weight: 500; }
+.gradebar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin-top: 14px; background: rgba(255, 255, 255, 0.06); }
 .gradebar i { display: block; height: 100%; }
-@media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 440px) { .stats { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .readouts { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 440px) { .readouts { grid-template-columns: 1fr; } }
 
 /* tables */
 .tbl { overflow-x: auto; border-radius: var(--r); }
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: 13px 16px; border-top: 1px solid var(--line-2); white-space: nowrap; vertical-align: middle; }
-th { border-top: 0; font-size: 11.5px; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; text-transform: uppercase; background: var(--surface); position: sticky; top: 0; z-index: 1; padding-top: 14px; padding-bottom: 12px; }
-th:first-child, td:first-child { padding-left: 24px; } th:last-child, td:last-child { padding-right: 24px; }
+th, td { text-align: left; padding: 13px 16px; border-top: 1px solid rgba(120, 170, 255, 0.08); white-space: nowrap; vertical-align: middle; }
+th { border-top: 0; font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; background: rgba(10, 15, 23, 0.85); position: sticky; top: 0; z-index: 1; padding-top: 14px; padding-bottom: 12px; }
+th:first-child, td:first-child { padding-left: 22px; } th:last-child, td:last-child { padding-right: 22px; }
 th.num, td.num { text-align: right; }
 td.num { font-family: var(--mono); font-size: 13px; }
-tbody tr { transition: background 120ms ease; }
-tbody tr:hover { background: var(--hover); }
-td.main { font-weight: 600; }
+tbody tr { transition: background 120ms ease, box-shadow 120ms ease; }
+tbody tr:hover { background: rgba(34, 211, 238, 0.05); box-shadow: inset 2px 0 0 var(--cyan); }
+td.main { font-weight: 600; font-family: var(--display); font-size: 14.5px; letter-spacing: 0.01em; }
 td.dim { color: var(--muted); }
 td.time { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
-.grade { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 24px; padding: 0 8px; border-radius: 8px; font-family: var(--mono); font-weight: 600; font-size: 12.5px; }
-.grade.S { color: var(--s); background: var(--s-soft); } .grade.A { color: var(--a); background: var(--a-soft); }
-.grade.B { color: var(--b); background: var(--b-soft); } .grade.C { color: var(--c); background: var(--c-soft); }
+.grade { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 24px; padding: 0 8px; border-radius: 7px; font-family: var(--mono); font-weight: 700; font-size: 12.5px; border: 1px solid currentColor; background: rgba(0, 0, 0, 0.25); }
+.grade.S { color: var(--s); box-shadow: 0 0 10px rgba(251, 191, 36, 0.35); } .grade.A { color: var(--a); box-shadow: 0 0 10px rgba(52, 211, 153, 0.3); }
+.grade.B { color: var(--b); } .grade.C { color: var(--c); opacity: 0.8; }
 .gscore { color: var(--muted); font-family: var(--mono); font-size: 12px; margin-left: 8px; }
 .gpath { color: var(--faint); font-family: var(--mono); font-size: 11.5px; margin-left: 6px; }
 .rungs { display: inline-flex; gap: 6px; }
-.rung { height: 22px; min-width: 40px; padding: 0 7px; border-radius: 7px; background: var(--surface-2); font-family: var(--mono); font-size: 11.5px; display: inline-grid; place-items: center; color: var(--faint); }
-.rung.hit { background: var(--win-soft); color: var(--win); }
-.pill { display: inline-flex; align-items: center; gap: 7px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--c-soft); color: var(--c); }
-.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.pill.targets { background: var(--win-soft); color: var(--win); }
-.pill.invalidated, .pill.stop { background: var(--loss-soft); color: var(--loss); }
-.pill.open { background: var(--b-soft); color: var(--b); }
-td.fills { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); white-space: normal; min-width: 220px; line-height: 1.7; }
+.rung { height: 22px; min-width: 42px; padding: 0 7px; border-radius: 6px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(120, 170, 255, 0.1); font-family: var(--mono); font-size: 11.5px; display: inline-grid; place-items: center; color: var(--faint); }
+.rung.hit { background: var(--win-soft); color: var(--win); border-color: rgba(52, 211, 153, 0.35); }
+.pill { display: inline-flex; align-items: center; gap: 7px; height: 24px; padding: 0 10px; border-radius: 999px; font-family: var(--mono); font-size: 11.5px; font-weight: 500; letter-spacing: 0.02em; background: rgba(255, 255, 255, 0.05); color: var(--c); border: 1px solid rgba(255, 255, 255, 0.08); }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.pill.targets { background: var(--win-soft); color: var(--win); border-color: rgba(52, 211, 153, 0.3); }
+.pill.invalidated, .pill.stop { background: var(--loss-soft); color: var(--loss); border-color: rgba(251, 113, 133, 0.3); }
+.pill.open { background: var(--cyan-soft); color: var(--cyan-2); border-color: rgba(34, 211, 238, 0.3); }
+td.fills { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); white-space: normal; min-width: 230px; line-height: 1.75; }
 .fills span { display: block; }
 .fills .buy { color: var(--muted); }
-.empty { padding: 36px 24px; color: var(--muted); text-align: center; }
+.empty { padding: 36px 24px; color: var(--muted); text-align: center; font-family: var(--mono); font-size: 12.5px; }
 details.why { white-space: normal; max-width: 520px; }
-details.why summary { cursor: pointer; color: var(--faint); font-size: 11.5px; list-style: none; font-weight: 400; }
+details.why summary { cursor: pointer; color: var(--faint); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; list-style: none; font-weight: 500; }
 details.why summary::-webkit-details-marker { display: none; }
-details.why summary:hover { color: var(--accent); }
-details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line-height: 1.5; font-weight: 400; }
+details.why summary:hover { color: var(--cyan-2); }
+details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line-height: 1.5; font-family: var(--sans); font-weight: 400; }
 
 /* segmented control */
-.seg { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 3px; gap: 2px; }
-.seg button { appearance: none; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: background 120ms ease, color 120ms ease; }
-.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+.seg { display: inline-flex; background: var(--glass-2); border: 1px solid var(--edge); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { appearance: none; border: 0; background: transparent; color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 12px; border-radius: 7px; cursor: pointer; transition: background 120ms ease, color 120ms ease; }
+.seg button[aria-pressed="true"] { background: var(--cyan-soft); color: var(--cyan-2); box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.35); }
 .seg button:hover { color: var(--ink); }
 
 /* calibration */
-.calib { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.calib { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 @media (max-width: 1000px) { .calib { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 640px) { .calib { grid-template-columns: 1fr; } }
 .cal { padding: 18px 20px 10px; }
-.cal h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
-.cal .row { display: grid; grid-template-columns: minmax(72px, 1fr) 36px 92px 64px; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line-2); }
-.cal .row:first-of-type { border-top: 0; }
+.cal h3 { margin: 0 0 12px; font-family: var(--display); font-size: 14px; font-weight: 600; }
+.cal .head, .cal .row { display: grid; grid-template-columns: minmax(70px, 1fr) 34px 96px 66px; gap: 10px; align-items: center; }
+.cal .head { padding-bottom: 8px; }
+.cal .head span { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+.cal .head span:not(:first-child) { text-align: right; }
+.cal .row { padding: 9px 0; border-top: 1px solid rgba(120, 170, 255, 0.08); }
 .cal .lbl { font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cal .n { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; }
-.meter { position: relative; height: 8px; border-radius: 4px; background: var(--line-2); overflow: hidden; }
-.meter i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
-.cal .net { font-family: var(--mono); font-size: 12.5px; text-align: right; font-weight: 500; }
-.cal .head { display: grid; grid-template-columns: minmax(72px, 1fr) 36px 92px 64px; gap: 10px; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 6px; }
-.cal .head span:not(:first-child) { text-align: right; }
-.lessons { padding: 20px 24px; border-left: 3px solid var(--accent); }
-.lessons h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.meter { position: relative; height: 7px; border-radius: 4px; background: rgba(255, 255, 255, 0.06); overflow: hidden; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; box-shadow: 0 0 10px currentColor; background: currentColor; }
+.cal .net { font-family: var(--mono); font-size: 12.5px; text-align: right; font-weight: 600; }
+.lessons { padding: 20px 24px; }
+.lessons h3 { margin: 0 0 10px; font-family: var(--display); font-size: 14px; }
 .lessons ul { margin: 0; padding-left: 18px; color: var(--ink-2); display: grid; gap: 6px; }
-.foot { color: var(--faint); font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 24px; padding-top: 8px; border-top: 1px solid var(--line-2); margin-top: 8px; }
+.foot { color: var(--faint); font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; display: flex; flex-wrap: wrap; gap: 6px 24px; padding-top: 14px; border-top: 1px solid var(--edge); }
 </style>
 </head>
 <body>
 <nav class="nav"><div class="nav-in">
-  <a class="brand" href="#top"><span class="mark">V</span>Vayen 0DTE Desk</a>
-  <div class="links"><a href="#overview">Overview</a><a href="#trades">Paper trades</a><a href="#callouts">Callouts</a><a href="#calibration">Calibration</a></div>
-  <div class="live"><span class="dot" id="dot"></span><span class="lbl" id="status-text">loading…</span><span class="t" id="status-time"></span></div>
+  <a class="brand" href="#top"><span class="mark">V</span>VAYEN 0DTE DESK</a>
+  <div class="links"><a href="#overview">Overview</a><a href="#trades">Trades</a><a href="#callouts">Callouts</a><a href="#calibration">Calibration</a></div>
+  <div class="live"><span class="dot" id="dot"></span><span class="lbl" id="status-text">loading</span><span class="t" id="status-time"></span></div>
 </div></nav>
+<div class="ticker" aria-hidden="true"><div class="ticker-in" id="ticker"></div></div>
 
 <main class="page" id="top">
   <section class="hero" id="overview">
     <div class="hero-top">
       <div>
-        <div class="eyebrow">Bot bankroll</div>
+        <div class="label">Bot bankroll · paper</div>
         <div class="headline"><span class="big num" id="equity">—</span><span class="delta zero" id="delta">—</span></div>
         <div class="hero-meta" id="hero-meta"></div>
       </div>
       <div class="day"><b id="day">—</b><span id="day-sub"></span><div class="chips" id="watchlist"></div></div>
     </div>
-    <div class="card curve-card">
-      <svg class="chart" id="curve" style="height:240px" aria-label="Bankroll through the day, stepping at each closed paper trade"></svg>
-      <div class="legend"><span><i style="background:var(--accent)"></i>bankroll after each closed paper trade</span><span><i style="background:var(--line)"></i>starting bankroll</span></div>
+    <div class="mod br curve-mod"><span class="mod-id">EQUITY · session</span>
+      <svg class="chart" id="curve" style="height:250px" aria-label="Bankroll through the day, stepping at each closed paper trade"></svg>
+      <div class="legend"><span><i style="background:linear-gradient(90deg,var(--cyan),var(--violet))"></i>bankroll after each closed paper trade</span><span><i style="background:var(--edge-2)"></i>starting bankroll</span></div>
     </div>
-    <div class="stats" id="stats"></div>
+    <div class="readouts" id="stats"></div>
   </section>
 
   <section id="trades">
     <div class="sec-h"><h2>Paper trades</h2><span class="count" id="trades-count">0</span><span class="note" id="trades-sub"></span></div>
-    <div class="card tbl"><table id="trades-table"><thead><tr>
+    <div class="mod tbl"><table id="trades-table"><thead><tr>
       <th>Time</th><th>Contract</th><th>Grade</th><th>Fills</th><th class="num">Realized</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
@@ -215,9 +219,9 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
       <div class="tools"><div class="seg" id="filter" role="group" aria-label="Filter callouts">
         <button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="traded" aria-pressed="false">Traded</button><button type="button" data-f="up" aria-pressed="false">Up</button><button type="button" data-f="down" aria-pressed="false">Down</button>
       </div></div></div>
-    <div class="card curve-card"><svg class="chart" id="spark" style="height:170px" aria-label="Net return of each callout under the plan, in order"></svg>
-      <div class="legend"><span><i style="background:var(--win)"></i>finished up</span><span><i style="background:var(--loss)"></i>finished down</span><span><i style="background:transparent;outline:2px solid var(--ink);outline-offset:-2px"></i>paper traded</span><span><i style="background:var(--b-soft)"></i>still open</span></div></div>
-    <div class="card tbl"><table id="setups-table"><thead><tr>
+    <div class="mod br curve-mod"><span class="mod-id">NET · per callout</span><svg class="chart" id="spark" style="height:180px" aria-label="Net return of each callout under the plan, in order"></svg>
+      <div class="legend"><span><i style="background:var(--win)"></i>finished up</span><span><i style="background:var(--loss)"></i>finished down</span><span><i style="background:transparent;outline:2px solid var(--cyan-2);outline-offset:-2px"></i>paper traded</span><span><i style="background:var(--cyan-soft)"></i>still open</span></div></div>
+    <div class="mod tbl"><table id="setups-table"><thead><tr>
       <th>Time</th><th>Contract</th><th>Lane · trigger</th><th>Grade</th><th class="num">Buy</th><th>Targets</th><th class="num">Net</th><th class="num">High</th><th class="num">Low</th><th>Ended</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
@@ -225,13 +229,13 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
   <section id="calibration">
     <div class="sec-h"><h2>Running calibration</h2><span class="count" id="calib-sub">0</span><span class="note">closed setups across every day the bot has run · win rate, net, first-target rate</span></div>
     <div class="calib" id="calib"></div>
-    <div class="card lessons"><h3>Lessons</h3><ul id="lessons"></ul></div>
+    <div class="mod br lessons"><span class="mod-id">LESSONS</span><h3>What the record says</h3><ul id="lessons"></ul></div>
   </section>
 
   <div class="foot">
     <span id="generated"></span>
-    <span>Buy is the ask at the callout. Plan: a third at +35%, +50% and +100%, flat after the last. Net is the whole position under the plan.</span>
-    <span>Updates every minute while the scanner runs. Information only, not advice.</span>
+    <span>BUY = ASK AT THE CALLOUT · PLAN ⅓ @ +35 / +50 / +100% · FLAT AFTER THE LAST · NET = WHOLE POSITION UNDER THE PLAN</span>
+    <span>REFRESH 60S · INFORMATION ONLY, NOT ADVICE</span>
   </div>
 </main>
 
@@ -246,10 +250,16 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
   const sign = (v) => v > 0 ? "pos" : v < 0 ? "neg" : "zero";
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const td = (text, cls) => el("td", cls, text);
-  const css = () => getComputedStyle(document.documentElement);
-  const color = (name) => css().getPropertyValue(name).trim();
-  let last = null, filter = "all";
+  const color = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let last = null, filter = "all", counted = false;
 
+  function countUp(node, target, fmt) {
+    if (reduced || counted || !isFinite(target)) { node.textContent = fmt(target); return; }
+    const start = performance.now(), dur = 900;
+    const step = (t) => { const k = Math.min(1, (t - start) / dur); const e = 1 - Math.pow(1 - k, 3); node.textContent = fmt(target * e); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
   function gradeCell(s, withScore) {
     const c = el("td");
     c.appendChild(el("span", "grade " + s.grade0, s.grade0));
@@ -284,8 +294,8 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
       ageMin = Math.round((nowEt - Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) / 60000);
     }
     $("dot").className = "dot " + (ageMin == null ? "" : ageMin <= 3 ? "live" : ageMin <= 20 ? "stale" : "");
-    $("status-text").textContent = ageMin == null ? "no scan yet" : ageMin <= 1 ? "Live · scanning" : ageMin < 60 ? "Last scan " + ageMin + " min ago" : "Market closed";
-    $("status-time").textContent = scan ? scan.replace(/^\d{4}-\d{2}-\d{2} /, "").replace(" ET", "").slice(0, 5) + " ET" : "";
+    $("status-text").textContent = ageMin == null ? "no scan yet" : ageMin <= 1 ? "live · scanning" : ageMin < 60 ? "last scan " + ageMin + " min ago" : "market closed";
+    $("status-time").textContent = scan ? scan.replace(/^\d{4}-\d{2}-\d{2} /, "").slice(0, 5) + " ET" : "";
     $("day").textContent = d.day ? new Date(d.day + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : "";
     $("day-sub").textContent = (d.watchlist || []).length + " symbols on the watchlist";
     const wl = $("watchlist"); wl.textContent = "";
@@ -298,9 +308,9 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
     const wins = closed.filter(s => s.net_pct > 0).length;
     const equity = acct.equity, bankroll = acct.bankroll;
     const change = (equity != null && bankroll) ? equity - bankroll : null;
-    $("equity").textContent = equity != null ? fmtUsd(equity) : "—";
+    if (equity != null) countUp($("equity"), equity, (v) => fmtUsd(v)); else $("equity").textContent = "—";
     const delta = $("delta");
-    if (change != null) { delta.className = "delta " + sign(change); delta.textContent = (change >= 0 ? "+" : "−") + fmtUsd(Math.abs(change)) + " · " + fmtPct(100 * change / bankroll, 0); }
+    if (change != null) { delta.className = "delta " + sign(change); delta.textContent = (change >= 0 ? "+" : "−") + fmtUsd(Math.abs(change)) + "  ·  " + fmtPct(100 * change / bankroll, 0); }
     else { delta.className = "delta zero"; delta.textContent = "no bankroll set"; }
     const tw = trades.filter(s => s.paper && s.paper.realized > 0).length, tl = trades.filter(s => s.paper && s.paper.realized < 0).length, to = trades.filter(s => s.paper && s.paper.realized == null).length;
     const hm = $("hero-meta"); hm.textContent = "";
@@ -310,21 +320,29 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
     hm.appendChild(el("b", sign(d.realized_today || 0), fmtUsd(d.realized_today || 0)));
     hm.appendChild(document.createTextNode(" on " + trades.length + " paper trade" + (trades.length === 1 ? "" : "s") + (trades.length ? " (" + tw + " won · " + tl + " lost" + (to ? " · " + to + " open" : "") + ")" : "") + (acct.label ? " · " + acct.label : "")));
 
+    // ticker
+    const tk = $("ticker"); tk.textContent = "";
+    const items = setups.length ? setups.map(s => { const sp = el("span"); sp.appendChild(el("b", null, s.posted + " " + s.label)); sp.appendChild(el("span", "grade " + s.grade0, s.grade0)); sp.appendChild(el("span", sign(s.net_pct), fmtPct(s.net_pct))); sp.appendChild(document.createTextNode(s.status === "open" ? "open" : (s.close_reason === "targets" ? "all targets" : s.close_reason === "invalidated" ? "exit" : s.close_reason || ""))); return sp; }) : [el("span", null, "No callouts yet today")];
+    items.concat(items.map(x => x.cloneNode(true))).forEach(x => tk.appendChild(x));
+
     drawCurve(trades, bankroll, equity);
 
     const counts = ["S", "A", "B", "C"].map(g => setups.filter(s => s.grade0 === g).length);
     const stats = [
-      { k: "Callouts today", v: String(setups.length), d: "S " + counts[0] + " · A " + counts[1] + " · B " + counts[2] + " · C " + counts[3], bar: counts },
-      { k: "Hit rate", v: closed.length ? Math.round(100 * wins / closed.length) + "%" : "—", cls: closed.length ? (wins / closed.length >= 0.5 ? "pos" : "neg") : "", d: closed.length ? wins + " of " + closed.length + " closed finished up" : "nothing closed yet" },
-      { k: "Reached +35%", v: closed.length ? Math.round(100 * closed.filter(s => s.hits && s.hits[0]).length / closed.length) + "%" : "—", d: closed.length ? closed.filter(s => s.hits && s.hits[0]).length + " took the first target · " + closed.filter(s => s.hits && s.hits[2]).length + " took all three" : "—" },
-      { k: "Account day P&L", v: acct.day_pl != null ? fmtUsd(acct.day_pl, 2) : "—", cls: acct.day_pl != null ? sign(acct.day_pl) : "", d: acct.net_liq != null ? "paper account net liq " + fmtUsd(acct.net_liq, 0) : "" },
+      { id: "MOD 01 · CALLOUTS", k: "Callouts today", v: setups.length, fmt: (v) => String(Math.round(v)), d: "S " + counts[0] + " · A " + counts[1] + " · B " + counts[2] + " · C " + counts[3], bar: counts },
+      { id: "MOD 02 · HIT RATE", k: "Hit rate", v: closed.length ? 100 * wins / closed.length : null, fmt: (v) => v == null ? "—" : Math.round(v) + "%", cls: closed.length ? (wins / closed.length >= 0.5 ? "pos" : "neg") : "", d: closed.length ? wins + " of " + closed.length + " closed finished up" : "nothing closed yet" },
+      { id: "MOD 03 · TARGETS", k: "Reached +35%", v: closed.length ? 100 * closed.filter(s => s.hits && s.hits[0]).length / closed.length : null, fmt: (v) => v == null ? "—" : Math.round(v) + "%", d: closed.length ? closed.filter(s => s.hits && s.hits[0]).length + " took the first target · " + closed.filter(s => s.hits && s.hits[2]).length + " took all three" : "—" },
+      { id: "MOD 04 · ACCOUNT", k: "Account day P&L", v: acct.day_pl != null ? Number(acct.day_pl) : null, fmt: (v) => v == null ? "—" : fmtUsd(v, 2), cls: acct.day_pl != null ? sign(acct.day_pl) : "", d: acct.net_liq != null ? "paper account net liq " + fmtUsd(acct.net_liq, 0) : "" },
     ];
     const st = $("stats"); st.textContent = "";
     stats.forEach(t => {
-      const c = el("div", "stat"); c.appendChild(el("div", "k", t.k)); c.appendChild(el("div", "v " + (t.cls || ""), t.v)); c.appendChild(el("div", "d", t.d));
-      if (t.bar) { const gb = el("div", "gradebar"); const total = Math.max(1, t.bar.reduce((a, b) => a + b, 0)); ["--s", "--a", "--b", "--c"].forEach((v, i) => { const i2 = el("i"); i2.style.width = (100 * t.bar[i] / total) + "%"; i2.style.background = "var(" + v + ")"; gb.appendChild(i2); }); c.appendChild(gb); }
+      const c = el("div", "mod ro"); c.appendChild(el("span", "mod-id", t.id)); c.appendChild(el("div", "label", t.k));
+      const v = el("div", "v " + (t.cls || "")); c.appendChild(v); countUp(v, t.v == null ? NaN : t.v, t.fmt);
+      c.appendChild(el("div", "d", t.d));
+      if (t.bar) { const gb = el("div", "gradebar"); const total = Math.max(1, t.bar.reduce((a, b) => a + b, 0)); ["--s", "--a", "--b", "--c"].forEach((cv, i) => { const i2 = el("i"); i2.style.width = (100 * t.bar[i] / total) + "%"; i2.style.background = "var(" + cv + ")"; gb.appendChild(i2); }); c.appendChild(gb); }
       st.appendChild(c);
     });
+    counted = true;
 
     // paper trades
     const tb = $("trades-table").querySelector("tbody"); tb.textContent = "";
@@ -356,15 +374,15 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
     const cal = $("calib"); cal.textContent = "";
     const tables = d.calibration || {};
     const names = { grade: "By grade", lane: "By lane", hour: "By hour band", "B score": "B grades by score", trigger: "By trigger", kind: "By setup kind" };
-    ["grade", "lane", "hour", "B score", "trigger", "kind"].filter(t => tables[t] && tables[t].length).forEach(t => {
-      const p = el("div", "card cal"); p.appendChild(el("h3", null, names[t]));
+    ["grade", "lane", "hour", "B score", "trigger", "kind"].filter(t => tables[t] && tables[t].length).forEach((t, idx) => {
+      const p = el("div", "mod cal"); p.appendChild(el("span", "mod-id", "CAL " + String(idx + 1).padStart(2, "0"))); p.appendChild(el("h3", null, names[t]));
       const h = el("div", "head"); ["", "n", "win rate", "net"].forEach(x => h.appendChild(el("span", null, x))); p.appendChild(h);
       tables[t].forEach(row => {
         const r = el("div", "row");
         const lbl = el("div", "lbl"); if (t === "grade") lbl.appendChild(el("span", "grade " + row.bucket, row.bucket)); else lbl.textContent = String(row.bucket).replace(/_/g, " ");
         r.appendChild(lbl);
         r.appendChild(el("div", "n", String(row.n)));
-        const mt = el("div", "meter"); const fill = el("i"); fill.style.width = Math.max(0, Math.min(100, row.win_pct)) + "%"; fill.style.background = row.win_pct >= 50 ? "var(--win)" : "var(--loss)"; mt.appendChild(fill); mt.title = row.win_pct + "% won · " + row.t1_pct + "% reached +35%"; r.appendChild(mt);
+        const mt = el("div", "meter"); const fill = el("i"); fill.style.width = Math.max(0, Math.min(100, row.win_pct)) + "%"; fill.style.color = row.win_pct >= 50 ? "var(--win)" : "var(--loss)"; mt.appendChild(fill); mt.title = row.win_pct + "% won · " + row.t1_pct + "% reached +35%"; r.appendChild(mt);
         r.appendChild(el("div", "net " + sign(row.net), fmtPct(row.net)));
         p.appendChild(r);
       });
@@ -373,7 +391,7 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
     $("calib-sub").textContent = String(d.closed_all_time || 0);
     const ls = $("lessons"); ls.textContent = "";
     (d.lessons || []).forEach(x => ls.appendChild(el("li", null, x)));
-    $("generated").textContent = d.generated ? "Snapshot " + d.generated.replace("T", " ").replace(/\.\d+/, "").replace(/-05:00|-04:00/, " ET") : "";
+    $("generated").textContent = d.generated ? "SNAPSHOT " + d.generated.replace("T", " ").replace(/\.\d+/, "").replace(/-05:00|-04:00/, " ET") : "";
   }
 
   function renderSetups(setups) {
@@ -416,77 +434,89 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
     return W;
   }
   const MONO = "JetBrains Mono, monospace";
+  function glowDefs(svg, ns, id) {
+    const defs = svgEl(ns, "defs", {});
+    const f = svgEl(ns, "filter", { id: id + "-glow", x: "-20%", y: "-50%", width: "140%", height: "200%" });
+    f.appendChild(svgEl(ns, "feGaussianBlur", { stdDeviation: 4, result: "b" }));
+    const mg = svgEl(ns, "feMerge", {}); mg.appendChild(svgEl(ns, "feMergeNode", { in: "b" })); mg.appendChild(svgEl(ns, "feMergeNode", { in: "SourceGraphic" })); f.appendChild(mg);
+    defs.appendChild(f);
+    const lg = svgEl(ns, "linearGradient", { id: id + "-stroke", x1: 0, x2: 1, y1: 0, y2: 0 });
+    lg.appendChild(svgEl(ns, "stop", { offset: "0%", "stop-color": color("--cyan") })); lg.appendChild(svgEl(ns, "stop", { offset: "100%", "stop-color": color("--violet") }));
+    defs.appendChild(lg);
+    const fg = svgEl(ns, "linearGradient", { id: id + "-fill", x1: 0, x2: 0, y1: 0, y2: 1 });
+    fg.appendChild(svgEl(ns, "stop", { offset: "0%", "stop-color": color("--cyan"), "stop-opacity": 0.28 })); fg.appendChild(svgEl(ns, "stop", { offset: "100%", "stop-color": color("--violet"), "stop-opacity": 0.02 }));
+    defs.appendChild(fg);
+    svg.appendChild(defs);
+  }
 
   function drawCurve(trades, bankroll, equity) {
     const svg = $("curve"), ns = "http://www.w3.org/2000/svg";
-    const H = 240, L = 64, R = 24, T = 22, B = 34;
+    const H = 250, L = 66, R = 24, T = 24, B = 34;
     const W = sized(svg, H);
-    if (!bankroll) { svg.appendChild(svgEl(ns, "text", { x: L, y: 120, fill: color("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = "No bankroll configured."; return; }
+    glowDefs(svg, ns, "c");
+    if (!bankroll) { svg.appendChild(svgEl(ns, "text", { x: L, y: 125, fill: color("--muted"), "font-size": 13, "font-family": MONO })).textContent = "NO BANKROLL CONFIGURED"; return; }
     const pts = [{ t: "open", v: bankroll }];
     let eq = bankroll;
     trades.filter(s => s.paper && s.paper.realized != null).forEach(s => { eq += s.paper.realized; pts.push({ t: s.closed || s.posted, v: eq, label: s.label, d: s.paper.realized }); });
     if (equity != null) pts.push({ t: "now", v: equity, now: true });
     const vals = pts.map(p => p.v);
     let lo = Math.min(...vals, bankroll), hi = Math.max(...vals, bankroll);
-    const span = Math.max(hi - lo, bankroll * 0.1); lo -= span * 0.2; hi += span * 0.25;
+    const span = Math.max(hi - lo, bankroll * 0.1); lo -= span * 0.2; hi += span * 0.28;
     const x = (i) => L + (W - L - R) * (pts.length === 1 ? 0 : i / (pts.length - 1));
     const y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
     for (let k = 0; k <= 4; k++) {
       const v = lo + (hi - lo) * k / 4;
-      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: color("--line-2"), "stroke-width": 1 }));
+      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "rgba(120,170,255,0.10)", "stroke-width": 1 }));
       svg.appendChild(svgEl(ns, "text", { x: L - 12, y: y(v) + 4, "text-anchor": "end", fill: color("--faint"), "font-size": 11, "font-family": MONO })).textContent = "$" + Math.round(v);
     }
-    svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(bankroll), y2: y(bankroll), stroke: color("--line"), "stroke-width": 1.5, "stroke-dasharray": "5 5" }));
-    const grad = svgEl(ns, "linearGradient", { id: "gfill", x1: 0, x2: 0, y1: 0, y2: 1 });
-    grad.appendChild(svgEl(ns, "stop", { offset: "0%", "stop-color": color("--accent"), "stop-opacity": 0.22 }));
-    grad.appendChild(svgEl(ns, "stop", { offset: "100%", "stop-color": color("--accent"), "stop-opacity": 0.02 }));
-    const defs = svgEl(ns, "defs", {}); defs.appendChild(grad); svg.appendChild(defs);
+    svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(bankroll), y2: y(bankroll), stroke: "rgba(120,170,255,0.35)", "stroke-width": 1.2, "stroke-dasharray": "3 6" }));
     let dpath = "", area = "";
     pts.forEach((p, i) => { const px = x(i), py = y(p.v); if (i === 0) { dpath = "M" + px + "," + py; area = "M" + px + "," + y(bankroll) + " L" + px + "," + py; } else { const prev = y(pts[i - 1].v); dpath += " L" + px + "," + prev + " L" + px + "," + py; area += " L" + px + "," + prev + " L" + px + "," + py; } });
     area += " L" + x(pts.length - 1) + "," + y(bankroll) + " Z";
-    svg.appendChild(svgEl(ns, "path", { d: area, fill: "url(#gfill)" }));
-    svg.appendChild(svgEl(ns, "path", { d: dpath, fill: "none", stroke: color("--accent"), "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    svg.appendChild(svgEl(ns, "path", { d: area, fill: "url(#c-fill)" }));
+    svg.appendChild(svgEl(ns, "path", { d: dpath, fill: "none", stroke: "url(#c-stroke)", "stroke-width": 2.75, "stroke-linejoin": "round", "stroke-linecap": "round", filter: "url(#c-glow)" }));
     let lastLabelX = -1e9;
     pts.forEach((p, i) => {
       if (i === 0) return;
       const lx = x(i), ly = y(p.v);
-      const dot = svgEl(ns, "circle", { cx: lx, cy: ly, r: p.now ? 5.5 : 4.5, fill: p.now ? color("--accent") : color("--surface"), stroke: color("--accent"), "stroke-width": 2.25 });
+      const dot = svgEl(ns, "circle", { cx: lx, cy: ly, r: p.now ? 6 : 4.5, fill: p.now ? color("--cyan-2") : color("--bg-2"), stroke: color("--cyan-2"), "stroke-width": 2.25, filter: p.now ? "url(#c-glow)" : "none" });
       dot.appendChild(svgEl(ns, "title", {})).textContent = p.now ? "now · $" + p.v.toFixed(2) : p.t + " " + p.label + " " + (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0) + " → $" + p.v.toFixed(0);
       svg.appendChild(dot);
       const isLast = i === pts.length - 1;
       if (isLast || lx - lastLabelX > 56) {
-        svg.appendChild(svgEl(ns, "text", { x: lx, y: H - 10, "text-anchor": isLast ? "end" : "middle", fill: color("--muted"), "font-size": 11, "font-family": MONO })).textContent = p.now ? "now" : p.t;
+        svg.appendChild(svgEl(ns, "text", { x: lx, y: H - 10, "text-anchor": isLast ? "end" : "middle", fill: color("--muted"), "font-size": 11, "font-family": MONO })).textContent = p.now ? "NOW" : p.t;
         lastLabelX = lx;
       }
       if (!p.now) {
-        const t = svgEl(ns, "text", { x: lx, y: ly - 11, "text-anchor": "middle", fill: color(p.d >= 0 ? "--win" : "--loss"), "font-size": 11.5, "font-weight": 600, "font-family": MONO }); t.textContent = (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0); svg.appendChild(t);
+        const t = svgEl(ns, "text", { x: lx, y: ly - 12, "text-anchor": "middle", fill: color(p.d >= 0 ? "--win" : "--loss"), "font-size": 11.5, "font-weight": 700, "font-family": MONO }); t.textContent = (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0); svg.appendChild(t);
       }
     });
-    svg.appendChild(svgEl(ns, "text", { x: L, y: H - 10, "text-anchor": "start", fill: color("--muted"), "font-size": 11, "font-family": MONO })).textContent = "open";
+    svg.appendChild(svgEl(ns, "text", { x: L, y: H - 10, "text-anchor": "start", fill: color("--muted"), "font-size": 11, "font-family": MONO })).textContent = "OPEN";
   }
 
   function drawSpark(setups) {
     const svg = $("spark"), ns = "http://www.w3.org/2000/svg";
-    const H = 170, L = 52, R = 20, T = 16, B = 28;
+    const H = 180, L = 54, R = 20, T = 18, B = 28;
     const W = sized(svg, H);
+    glowDefs(svg, ns, "s");
     const rows = setups.filter(s => filter === "all" || (filter === "traded" && s.paper) || (filter === "up" && s.status !== "open" && s.net_pct > 0) || (filter === "down" && s.status !== "open" && s.net_pct < 0));
     const n = rows.length;
-    if (!n) { svg.appendChild(svgEl(ns, "text", { x: L, y: 90, fill: color("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = setups.length ? "Nothing matches this filter." : "No callouts yet."; return; }
+    if (!n) { svg.appendChild(svgEl(ns, "text", { x: L, y: 92, fill: color("--muted"), "font-size": 13, "font-family": MONO })).textContent = setups.length ? "NOTHING MATCHES THIS FILTER" : "NO CALLOUTS YET"; return; }
     const vals = rows.map(s => s.net_pct || 0);
     const max = Math.max(20, Math.ceil(Math.max(...vals.map(Math.abs)) / 20) * 20);
     const y = (v) => T + (H - T - B) * (1 - (v + max) / (2 * max));
     [-max, -max / 2, 0, max / 2, max].forEach(v => {
-      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: color(v === 0 ? "--line" : "--line-2"), "stroke-width": v === 0 ? 1.5 : 1 }));
+      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: v === 0 ? "rgba(120,170,255,0.35)" : "rgba(120,170,255,0.10)", "stroke-width": v === 0 ? 1.2 : 1 }));
       svg.appendChild(svgEl(ns, "text", { x: L - 12, y: y(v) + 4, "text-anchor": "end", fill: color("--faint"), "font-size": 11, "font-family": MONO })).textContent = (v > 0 ? "+" : "") + v + "%";
     });
-    const slot = (W - L - R) / n, bw = Math.max(6, Math.min(36, slot * 0.56));
+    const slot = (W - L - R) / n, bw = Math.max(6, Math.min(34, slot * 0.54));
     const labelEvery = Math.max(1, Math.ceil(46 / slot));
     rows.forEach((s, i) => {
       const v = s.net_pct || 0;
       const x0 = L + i * slot + (slot - bw) / 2;
-      const r = svgEl(ns, "rect", { x: x0, width: bw, y: Math.min(y(v), y(0)), height: Math.max(2, Math.abs(y(v) - y(0))), rx: 4,
-        fill: color(s.status === "open" ? "--b-soft" : v > 0 ? "--win" : v < 0 ? "--loss" : "--flat") });
-      if (s.paper) { r.setAttribute("stroke", color("--ink")); r.setAttribute("stroke-width", "2"); }
+      const fill = s.status === "open" ? color("--cyan-soft") : v > 0 ? color("--win") : v < 0 ? color("--loss") : color("--flat");
+      const r = svgEl(ns, "rect", { x: x0, width: bw, y: Math.min(y(v), y(0)), height: Math.max(2, Math.abs(y(v) - y(0))), rx: 4, fill: fill, opacity: s.status === "open" ? 1 : 0.9 });
+      if (s.paper) { r.setAttribute("stroke", color("--cyan-2")); r.setAttribute("stroke-width", "2"); r.setAttribute("filter", "url(#s-glow)"); }
       r.appendChild(svgEl(ns, "title", {})).textContent = s.posted + " " + s.label + " · " + s.grade0 + " " + s.score0 + " · " + fmtPct(v) + (s.paper ? " · paper traded" : "") + (s.status === "open" ? " · open" : "");
       svg.appendChild(r);
       if (i % labelEvery === 0) svg.appendChild(svgEl(ns, "text", { x: x0 + bw / 2, y: H - 9, "text-anchor": "middle", fill: color("--faint"), "font-size": 10.5, "font-family": MONO })).textContent = s.posted;
@@ -504,7 +534,7 @@ details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line
       const d = await res.json();
       last = d; render(d);
     } catch (e) {
-      $("status-text").textContent = last ? "Refresh failed" : "Could not load data (" + e.message + ")";
+      $("status-text").textContent = last ? "refresh failed" : "could not load data (" + e.message + ")";
       $("dot").className = "dot stale";
     }
   }
