@@ -135,8 +135,22 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* ---------- charts grid ---------- */
 .deck { display: grid; grid-template-columns: 1fr 330px; gap: 18px; }
-.chartcard { padding: 6px 6px 8px; display: flex; flex-direction: column; }
+.chartcard { padding: 6px 6px 8px; display: flex; flex-direction: column; user-select: none; -webkit-user-select: none; }
 .chartcard .lw { min-height: 440px; }
+.fsbtn { position: absolute; top: 8px; right: 10px; z-index: 5; width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border); background: rgba(13,15,28,.85); color: var(--muted); font-size: 15px; line-height: 1; display: grid; place-items: center; transition: .2s; }
+.fsbtn:hover { color: var(--text); border-color: var(--border2); box-shadow: 0 0 12px rgba(124,92,252,.35); }
+.chartcard.fs { background: var(--bg); border: 0; border-radius: 0; padding: 12px 14px; transition: none; }
+.chartcard.fs { position: fixed; inset: 0; z-index: 80; }
+.chartcard.fs::before { display: none; }
+.chartcard.fs .lw { min-height: 0 !important; flex: 3; }
+.chartcard.fs .panes { flex: 2.2; grid-template-rows: repeat(3, 1fr); min-height: 0; }
+.chartcard.fs .pane { min-height: 0; display: flex; }
+.chartcard.fs .pane .lw { flex: 1; }
+.chartcard.fs .legend { padding-right: 56px; }
+.fshint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 5; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(13,15,28,.85); color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; pointer-events: none; opacity: 0; transition: opacity .4s; }
+.chartcard.fs .fshint { animation: hintfade 4.5s ease forwards; }
+@keyframes hintfade { 0% { opacity: 0; } 12% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@media (max-width: 720px) { .fsbtn { width: 34px; height: 34px; } }
 .side { display: flex; flex-direction: column; gap: 14px; }
 .side .card { padding: 18px 20px; }
 .side h4 { margin: 0 0 12px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--accent2); }
@@ -411,9 +425,9 @@ footer b { color: var(--text); font-weight: 500; }
     return { bars: out, vwap: vw };
   }
   let settled = false; setTimeout(() => { settled = true; }, 2500);
-  function fit(list, n) {
+  function fit(list, n, force) {
     const phone = window.innerWidth < 720, go = () => list.forEach(x => { try { if (phone && n > 150) x.ch.timeScale().setVisibleLogicalRange({ from: n - 120, to: n + 3 }); else x.ch.timeScale().fitContent(); } catch (e) {} });
-    go(); if (!settled) { requestAnimationFrame(go); setTimeout(go, 150); setTimeout(go, 600); }
+    go(); if (!settled || force) { requestAnimationFrame(go); setTimeout(go, 150); setTimeout(go, 600); }
   }
   function syncAll(list) {
     let busy = false;
@@ -644,6 +658,34 @@ footer b { color: var(--text); font-weight: 500; }
       tables[t].forEach(r => { const row = el("div", "mrow"); row.appendChild(el("span", "b", r.bucket)); const mt = el("div", "meter"); const i = el("i"); i.style.width = Math.max(2, r.win_pct || 0) + "%"; mt.appendChild(i); row.appendChild(mt); row.appendChild(el("span", "n", (r.win_pct == null ? "—" : r.win_pct + "%"))); row.appendChild(el("span", "n " + sgn(r.net), pct(r.net) + " · " + r.n)); c.appendChild(row); }); g.appendChild(c); });
     $("cal-n").textContent = (d.closed_all_time || 0) + " closed callouts on record"; const ls = $("lessons"); ls.textContent = ""; (d.lessons || []).forEach(x => ls.appendChild(el("li", null, x)));
   }
+
+  // ---------- full screen ----------
+  function refitAll(force) {
+    if (state.touched && !force) return;
+    if (C.mkt && C.mkt.bars.length) fit([C.mkt], C.mkt.bars.length, true);
+    if (C.con && C.con.bars.length) fit([C.con, C.macd, C.ttm, C.rsi], C.con.bars.length, true);
+  }
+  function toggleFs(card) {
+    const on = document.fullscreenElement === card || card.classList.contains("fs");
+    if (on) { card.classList.remove("fs"); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+    else {
+      // fallback overlay: a reveal transform on an ancestor would trap position:fixed, so settle the reveal first
+      const anc = card.closest(".rv"); if (anc) { anc.style.transition = "none"; anc.classList.add("in"); }
+      if (card.requestFullscreen) {
+        let done = false; const fb = () => { done = true; if (document.fullscreenElement !== card) card.classList.add("fs"); };
+        try { card.requestFullscreen().then(() => { done = true; card.classList.add("fs"); }, fb); } catch (e) { fb(); }
+        setTimeout(() => { if (!done) fb(); }, 400);
+      } else card.classList.add("fs");
+    }
+    setTimeout(() => refitAll(true), 80); setTimeout(() => refitAll(true), 450);
+  }
+  document.querySelectorAll(".chartcard").forEach(card => {
+    card.addEventListener("dblclick", (e) => { if (e.target.closest("button")) return; e.preventDefault(); toggleFs(card); });
+    const b = el("button", "fsbtn", "\u26F6"); b.title = "Full screen (or double-click the chart) - Esc to leave"; b.setAttribute("aria-label", "Toggle full screen"); b.onclick = () => toggleFs(card); card.appendChild(b);
+    card.appendChild(el("div", "fshint", "double-click or Esc to leave full screen"));
+  });
+  document.addEventListener("fullscreenchange", () => { const fe = document.fullscreenElement; document.querySelectorAll(".chartcard").forEach(c => c.classList.toggle("fs", fe === c)); setTimeout(() => refitAll(true), 80); setTimeout(() => refitAll(true), 450); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.querySelector(".chartcard.fs")) { document.querySelectorAll(".chartcard.fs").forEach(c => c.classList.remove("fs")); setTimeout(() => refitAll(true), 80); } });
 
   // ---------- controls ----------
   document.querySelectorAll(".chartcard .lw").forEach(x => { ["pointerdown", "wheel", "touchstart"].forEach(ev => x.addEventListener(ev, () => { state.touched = true; }, { passive: true })); });
