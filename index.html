@@ -4,198 +4,236 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Vayen 0DTE Desk</title>
-<meta name="description" content="Live board for the Vayen 0DTE options bot: callouts, grades, paper trades and the running calibration.">
+<meta name="description" content="Live board for the Vayen 0DTE options bot: bankroll, callouts, grades, paper trades and the running calibration.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: a quiet trading desk. One accent, semantic green/red only for money, grade as a small tinted mark.
-   Summary strip → bankroll curve + paper ledger → the full callout ledger → calibration board. */
+/* Layout: product page on an 8px grid. Sticky nav → bankroll hero with the equity curve → four soft stat cards →
+   paper ledger → filterable callout ledger → calibration board. Surfaces instead of borders; one blue accent;
+   green/red reserved for money. */
 :root {
-  --bg: #f6f7f8; --panel: #ffffff; --ink: #111418; --ink-2: #3b434c; --muted: #6b7480; --faint: #9aa3ad;
-  --line: #e4e7eb; --line-2: #eef0f3; --hover: #f3f5f7;
-  --accent: #0f766e; --accent-soft: #e6f3f1;
-  --win: #15803d; --win-soft: #e8f5ec; --loss: #c2410c; --loss-soft: #fdeee6; --flat: #8a93a0;
-  --s: #a16207; --s-soft: #fdf3d8; --a: #15803d; --a-soft: #e8f5ec; --b: #1d4ed8; --b-soft: #e8eefc; --c: #6b7480; --c-soft: #eef0f3;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 1px rgba(16, 24, 40, 0.03);
+  --bg: #f7f8fa; --surface: #ffffff; --surface-2: #f1f3f6; --ink: #0f1420; --ink-2: #39414f; --muted: #6b7280; --faint: #a0a7b4;
+  --line: #e7e9ee; --line-2: #eff1f5; --hover: #f5f7fa;
+  --accent: #2563eb; --accent-2: #1d4ed8; --accent-soft: #e8efff; --on-accent: #ffffff;
+  --win: #16a34a; --win-soft: #e7f7ec; --loss: #dc2626; --loss-soft: #fdeaea; --flat: #8b93a1;
+  --s: #b45309; --s-soft: #fdf1dc; --a: #15803d; --a-soft: #e7f7ec; --b: #2563eb; --b-soft: #e8efff; --c: #6b7280; --c-soft: #eef0f4;
+  --shadow: 0 1px 2px rgba(15, 20, 32, 0.04), 0 4px 16px rgba(15, 20, 32, 0.04);
+  --shadow-sm: 0 1px 2px rgba(15, 20, 32, 0.05);
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --r: 12px;
+  --r: 16px; --r-sm: 10px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b0e12; --panel: #12161c; --ink: #e9edf1; --ink-2: #c3cad3; --muted: #8b95a1; --faint: #5f6a76;
-    --line: #232a33; --line-2: #1b2128; --hover: #171c23;
-    --accent: #2dd4bf; --accent-soft: #0f2a27;
-    --win: #4ade80; --win-soft: #0f2a1a; --loss: #fb923c; --loss-soft: #33190c; --flat: #7c8794;
-    --s: #fbbf24; --s-soft: #332a0e; --a: #4ade80; --a-soft: #0f2a1a; --b: #60a5fa; --b-soft: #0f1f3d; --c: #8b95a1; --c-soft: #1b2128;
-    --shadow: none;
+    --bg: #0a0c10; --surface: #12151b; --surface-2: #181c24; --ink: #edf0f4; --ink-2: #c6ccd6; --muted: #8b93a1; --faint: #5c6473;
+    --line: #222631; --line-2: #1c2029; --hover: #171b22;
+    --accent: #5b8def; --accent-2: #7ca3f5; --accent-soft: #15213a; --on-accent: #0a0c10;
+    --win: #34d399; --win-soft: #0f2a1f; --loss: #f87171; --loss-soft: #351a1a; --flat: #7c8594;
+    --s: #fbbf24; --s-soft: #33280f; --a: #34d399; --a-soft: #0f2a1f; --b: #7ca3f5; --b-soft: #15213a; --c: #9aa2b1; --c-soft: #1c2029;
+    --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset; --shadow-sm: none;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0b0e12; --panel: #12161c; --ink: #e9edf1; --ink-2: #c3cad3; --muted: #8b95a1; --faint: #5f6a76;
-  --line: #232a33; --line-2: #1b2128; --hover: #171c23;
-  --accent: #2dd4bf; --accent-soft: #0f2a27;
-  --win: #4ade80; --win-soft: #0f2a1a; --loss: #fb923c; --loss-soft: #33190c; --flat: #7c8794;
-  --s: #fbbf24; --s-soft: #332a0e; --a: #4ade80; --a-soft: #0f2a1a; --b: #60a5fa; --b-soft: #0f1f3d; --c: #8b95a1; --c-soft: #1b2128;
-  --shadow: none;
+  --bg: #0a0c10; --surface: #12151b; --surface-2: #181c24; --ink: #edf0f4; --ink-2: #c6ccd6; --muted: #8b93a1; --faint: #5c6473;
+  --line: #222631; --line-2: #1c2029; --hover: #171b22;
+  --accent: #5b8def; --accent-2: #7ca3f5; --accent-soft: #15213a; --on-accent: #0a0c10;
+  --win: #34d399; --win-soft: #0f2a1f; --loss: #f87171; --loss-soft: #351a1a; --flat: #7c8594;
+  --s: #fbbf24; --s-soft: #33280f; --a: #34d399; --a-soft: #0f2a1f; --b: #7ca3f5; --b-soft: #15213a; --c: #9aa2b1; --c-soft: #1c2029;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset; --shadow-sm: none;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5;
-  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
-  padding-block: 28px 56px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
-.wrap { max-width: 1240px; margin: 0 auto; display: grid; gap: 28px; }
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-feature-settings: "cv11", "ss03";
+  padding-block: 0 64px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
 .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .pos { color: var(--win); } .neg { color: var(--loss); } .zero { color: var(--flat); }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
-/* top bar */
-.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
-.brand { display: flex; align-items: center; gap: 12px; }
-.mark { width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: #fff; display: grid; place-items: center; font-family: var(--mono); font-weight: 600; font-size: 13px; letter-spacing: 0.04em; }
-.brand h1 { font-size: 20px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-.brand .sub { color: var(--muted); font-size: 13px; }
-.status { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
-.status .t { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--flat); box-shadow: 0 0 0 4px color-mix(in srgb, var(--flat) 18%, transparent); }
-.dot.live { background: var(--win); box-shadow: 0 0 0 4px color-mix(in srgb, var(--win) 20%, transparent); }
-.dot.stale { background: var(--s); box-shadow: 0 0 0 4px color-mix(in srgb, var(--s) 20%, transparent); }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; }
-.chip { font-family: var(--mono); font-size: 11.5px; padding: 3px 9px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--ink-2); }
+/* nav */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(160%) blur(12px); -webkit-backdrop-filter: saturate(160%) blur(12px); border-bottom: 1px solid var(--line-2);
+  margin-left: calc(-1 * max(24px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(24px, env(safe-area-inset-right, 0px)));
+  padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.nav-in { max-width: 1200px; margin: 0 auto; height: 60px; display: flex; align-items: center; gap: 24px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.mark { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-family: var(--mono); font-weight: 600; font-size: 12px; }
+.links { display: flex; gap: 4px; margin-left: 8px; }
+.links a { padding: 6px 10px; border-radius: 8px; color: var(--muted); font-size: 13px; font-weight: 500; }
+.links a:hover { background: var(--surface-2); color: var(--ink); }
+.live { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-sm); border: 1px solid var(--line-2); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.live .t { font-family: var(--mono); color: var(--ink-2); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--flat); }
+.dot.live { background: var(--win); box-shadow: 0 0 0 3px color-mix(in srgb, var(--win) 22%, transparent); }
+.dot.stale { background: var(--s); box-shadow: 0 0 0 3px color-mix(in srgb, var(--s) 22%, transparent); }
+@media (prefers-reduced-motion: no-preference) { .dot.live { animation: pulse 2.2s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--win) 10%, transparent); } } }
+@media (max-width: 720px) { .links { display: none; } .live .lbl { display: none; } }
 
-/* summary strip */
-.strip { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
-.kpi { padding: 18px 22px; min-width: 0; border-left: 1px solid var(--line-2); }
-.kpi:first-child { border-left: 0; }
-.kpi .k { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0.01em; }
-.kpi .v { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin-top: 6px; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.kpi .d { font-size: 12.5px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
-.kpi .d b { font-weight: 600; }
-@media (max-width: 860px) { .strip { grid-template-columns: repeat(2, 1fr); } .kpi:nth-child(3) { border-left: 0; } .kpi:nth-child(n+3) { border-top: 1px solid var(--line-2); } }
+.page { max-width: 1200px; margin: 0 auto; display: grid; gap: 56px; padding-top: 40px; }
+section { display: grid; gap: 20px; min-width: 0; scroll-margin-top: 76px; }
+.sec-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; }
+.sec-h h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.015em; margin: 0; }
+.sec-h .count { font-family: var(--mono); font-size: 12px; color: var(--muted); background: var(--surface-2); padding: 2px 8px; border-radius: 999px; }
+.sec-h .note { color: var(--muted); font-size: 13px; }
+.sec-h .tools { margin-left: auto; display: flex; gap: 10px; align-items: center; }
 
-/* two-column row */
-.row { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; }
-@media (max-width: 960px) { .row { grid-template-columns: 1fr; } }
-section { display: grid; gap: 12px; min-width: 0; }
-.sec-h { display: flex; align-items: baseline; gap: 10px; }
-.sec-h h2 { font-size: 15px; font-weight: 600; margin: 0; letter-spacing: -0.005em; }
-.sec-h .count { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-.sec-h .right { margin-left: auto; font-size: 12.5px; color: var(--muted); }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); min-width: 0; }
-.panel.pad { padding: 16px 18px; }
-.scroll { overflow-x: auto; border-radius: var(--r); }
+/* hero */
+.hero { display: grid; gap: 24px; }
+.hero-top { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 32px; }
+.eyebrow { font-size: 12.5px; font-weight: 500; color: var(--muted); letter-spacing: 0.02em; text-transform: uppercase; }
+.headline { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.headline .big { font-family: var(--mono); font-size: 56px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.delta { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-family: var(--mono); font-size: 14px; font-weight: 600; }
+.delta.pos { background: var(--win-soft); color: var(--win); } .delta.neg { background: var(--loss-soft); color: var(--loss); } .delta.zero { background: var(--c-soft); color: var(--c); }
+.hero-meta { color: var(--muted); font-size: 13.5px; }
+.hero-meta b { color: var(--ink-2); font-weight: 500; }
+.day { margin-left: auto; text-align: right; color: var(--muted); font-size: 13.5px; }
+.day b { display: block; color: var(--ink); font-weight: 600; font-size: 15px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 8px; }
+.chip { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); }
+@media (max-width: 720px) { .day { margin-left: 0; text-align: left; } .chips { justify-content: flex-start; } .headline .big { font-size: 44px; } }
+
+.card { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); min-width: 0; }
+.card.pad { padding: 20px 24px; }
+.curve-card { padding: 20px 20px 12px; }
+svg.chart { display: block; width: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--muted); padding: 10px 4px 0; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat { background: var(--surface); border-radius: var(--r); box-shadow: var(--shadow); padding: 18px 20px; min-width: 0; }
+.stat .k { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.stat .v { font-family: var(--mono); font-size: 30px; font-weight: 600; letter-spacing: -0.02em; margin-top: 8px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stat .d { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.stat .d b { color: var(--ink-2); font-weight: 500; }
+.gradebar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 12px; background: var(--line-2); }
+.gradebar i { display: block; height: 100%; }
+@media (max-width: 900px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 440px) { .stats { grid-template-columns: 1fr; } }
 
 /* tables */
+.tbl { overflow-x: auto; border-radius: var(--r); }
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
-th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line-2); white-space: nowrap; vertical-align: middle; }
-th { font-size: 11.5px; font-weight: 500; color: var(--muted); letter-spacing: 0.02em; background: var(--panel); position: sticky; top: 0; z-index: 1; }
+th, td { text-align: left; padding: 13px 16px; border-top: 1px solid var(--line-2); white-space: nowrap; vertical-align: middle; }
+th { border-top: 0; font-size: 11.5px; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; text-transform: uppercase; background: var(--surface); position: sticky; top: 0; z-index: 1; padding-top: 14px; padding-bottom: 12px; }
+th:first-child, td:first-child { padding-left: 24px; } th:last-child, td:last-child { padding-right: 24px; }
 th.num, td.num { text-align: right; }
 td.num { font-family: var(--mono); font-size: 13px; }
-tbody tr:hover td { background: var(--hover); }
-tbody tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background 120ms ease; }
+tbody tr:hover { background: var(--hover); }
 td.main { font-weight: 600; }
 td.dim { color: var(--muted); }
-.grade { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 22px; padding: 0 7px; border-radius: 7px; font-family: var(--mono); font-weight: 600; font-size: 12px; }
+td.time { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.grade { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 24px; padding: 0 8px; border-radius: 8px; font-family: var(--mono); font-weight: 600; font-size: 12.5px; }
 .grade.S { color: var(--s); background: var(--s-soft); } .grade.A { color: var(--a); background: var(--a-soft); }
 .grade.B { color: var(--b); background: var(--b-soft); } .grade.C { color: var(--c); background: var(--c-soft); }
-.path { color: var(--faint); font-family: var(--mono); font-size: 11px; margin-left: 6px; }
-.score { color: var(--muted); font-family: var(--mono); font-size: 11.5px; margin-left: 6px; }
-.rungs { display: inline-flex; gap: 5px; }
-.rung { height: 20px; min-width: 34px; padding: 0 6px; border-radius: 6px; border: 1px solid var(--line); font-family: var(--mono); font-size: 11px; display: inline-grid; place-items: center; color: var(--faint); }
-.rung.hit { background: var(--win-soft); color: var(--win); border-color: transparent; }
-.pill { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--c-soft); color: var(--c); }
+.gscore { color: var(--muted); font-family: var(--mono); font-size: 12px; margin-left: 8px; }
+.gpath { color: var(--faint); font-family: var(--mono); font-size: 11.5px; margin-left: 6px; }
+.rungs { display: inline-flex; gap: 6px; }
+.rung { height: 22px; min-width: 40px; padding: 0 7px; border-radius: 7px; background: var(--surface-2); font-family: var(--mono); font-size: 11.5px; display: inline-grid; place-items: center; color: var(--faint); }
+.rung.hit { background: var(--win-soft); color: var(--win); }
+.pill { display: inline-flex; align-items: center; gap: 7px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: var(--c-soft); color: var(--c); }
 .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .pill.targets { background: var(--win-soft); color: var(--win); }
 .pill.invalidated, .pill.stop { background: var(--loss-soft); color: var(--loss); }
 .pill.open { background: var(--b-soft); color: var(--b); }
-.pill.session_end { background: var(--c-soft); color: var(--c); }
-td.fills { font-family: var(--mono); font-size: 12px; color: var(--ink-2); white-space: normal; min-width: 200px; line-height: 1.6; }
+td.fills { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); white-space: normal; min-width: 220px; line-height: 1.7; }
 .fills span { display: block; }
-.empty { padding: 28px 18px; color: var(--muted); text-align: center; }
+.fills .buy { color: var(--muted); }
+.empty { padding: 36px 24px; color: var(--muted); text-align: center; }
+details.why { white-space: normal; max-width: 520px; }
+details.why summary { cursor: pointer; color: var(--faint); font-size: 11.5px; list-style: none; font-weight: 400; }
+details.why summary::-webkit-details-marker { display: none; }
+details.why summary:hover { color: var(--accent); }
+details.why div { color: var(--muted); font-size: 12.5px; padding-top: 6px; line-height: 1.5; font-weight: 400; }
 
-/* charts */
-svg.chart { display: block; width: 100%; height: 190px; }
-.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); padding: 0 18px 14px; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+/* segmented control */
+.seg { display: inline-flex; background: var(--surface-2); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { appearance: none; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: background 120ms ease, color 120ms ease; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+.seg button:hover { color: var(--ink); }
 
 /* calibration */
-.calib { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
-@media (max-width: 440px) { .calib { grid-template-columns: 1fr; } }
-.cal { padding: 14px 16px 8px; overflow-x: auto; }
-.cal h3 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
-.cal table { table-layout: auto; }
-.cal table th, .cal table td { padding: 7px 8px; font-size: 12.5px; }
-.cal table th:first-child, .cal table td:first-child { padding-left: 0; }
-.cal table th:last-child, .cal table td:last-child { padding-right: 0; }
-.cal td.barcell { width: 28%; min-width: 72px; }
-.bar { height: 6px; border-radius: 3px; background: var(--line-2); position: relative; width: 100%; min-width: 56px; }
-.bar > i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; background: var(--accent); }
-ul.lessons { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
-ul.lessons li { padding-left: 18px; position: relative; color: var(--ink-2); }
-ul.lessons li::before { content: ""; position: absolute; left: 0; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-.foot { color: var(--faint); font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 20px; padding-top: 4px; }
-details.read { white-space: normal; max-width: 520px; }
-details.read summary { cursor: pointer; color: var(--faint); font-size: 11.5px; list-style: none; }
-details.read summary::-webkit-details-marker { display: none; }
-details.read div { color: var(--muted); font-size: 12px; padding-top: 4px; line-height: 1.45; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-@media (prefers-reduced-motion: no-preference) { .dot.live { animation: pulse 2.4s ease-in-out infinite; } @keyframes pulse { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--win) 10%, transparent); } } }
-@media (max-width: 640px) { body { padding-block: 18px 40px; } .kpi { padding: 14px 16px; } .kpi .v { font-size: 22px; } .wrap { gap: 20px; } }
+.calib { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 1000px) { .calib { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .calib { grid-template-columns: 1fr; } }
+.cal { padding: 18px 20px 10px; }
+.cal h3 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.cal .row { display: grid; grid-template-columns: minmax(72px, 1fr) 36px 92px 64px; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line-2); }
+.cal .row:first-of-type { border-top: 0; }
+.cal .lbl { font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal .n { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; }
+.meter { position: relative; height: 8px; border-radius: 4px; background: var(--line-2); overflow: hidden; }
+.meter i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+.cal .net { font-family: var(--mono); font-size: 12.5px; text-align: right; font-weight: 500; }
+.cal .head { display: grid; grid-template-columns: minmax(72px, 1fr) 36px 92px 64px; gap: 10px; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.04em; padding-bottom: 6px; }
+.cal .head span:not(:first-child) { text-align: right; }
+.lessons { padding: 20px 24px; border-left: 3px solid var(--accent); }
+.lessons h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.lessons ul { margin: 0; padding-left: 18px; color: var(--ink-2); display: grid; gap: 6px; }
+.foot { color: var(--faint); font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 24px; padding-top: 8px; border-top: 1px solid var(--line-2); margin-top: 8px; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <div class="mark">V</div>
-      <div><h1>Vayen 0DTE Desk</h1><div class="sub" id="day">—</div></div>
-    </div>
-    <div class="status"><span class="dot" id="dot"></span><span id="status-text">loading…</span><span class="t" id="status-time"></span></div>
-    <div class="chips" id="watchlist"></div>
-  </header>
+<nav class="nav"><div class="nav-in">
+  <a class="brand" href="#top"><span class="mark">V</span>Vayen 0DTE Desk</a>
+  <div class="links"><a href="#overview">Overview</a><a href="#trades">Paper trades</a><a href="#callouts">Callouts</a><a href="#calibration">Calibration</a></div>
+  <div class="live"><span class="dot" id="dot"></span><span class="lbl" id="status-text">loading…</span><span class="t" id="status-time"></span></div>
+</div></nav>
 
-  <div class="strip" id="strip"></div>
-
-  <div class="row">
-    <section id="curve-section">
-      <div class="sec-h"><h2>Bankroll today</h2><span class="count" id="curve-sub"></span></div>
-      <div class="panel">
-        <svg class="chart" id="curve" viewBox="0 0 1000 190" preserveAspectRatio="none" aria-label="Bankroll through the day, stepping at each realized trade"></svg>
-        <div class="legend"><span><i style="background:var(--accent)"></i>bankroll after each closed paper trade</span><span><i style="background:var(--line)"></i>starting bankroll</span></div>
+<main class="page" id="top">
+  <section class="hero" id="overview">
+    <div class="hero-top">
+      <div>
+        <div class="eyebrow">Bot bankroll</div>
+        <div class="headline"><span class="big num" id="equity">—</span><span class="delta zero" id="delta">—</span></div>
+        <div class="hero-meta" id="hero-meta"></div>
       </div>
-    </section>
-    <section id="trades-section">
-      <div class="sec-h"><h2>Paper trades</h2><span class="count" id="trades-count"></span><span class="right" id="trades-sub"></span></div>
-      <div class="panel scroll"><table id="trades"><thead><tr>
-        <th>Time</th><th>Contract</th><th>Grade</th><th>Fills</th><th class="num">Realized</th>
-      </tr></thead><tbody></tbody></table></div>
-    </section>
-  </div>
+      <div class="day"><b id="day">—</b><span id="day-sub"></span><div class="chips" id="watchlist"></div></div>
+    </div>
+    <div class="card curve-card">
+      <svg class="chart" id="curve" style="height:240px" aria-label="Bankroll through the day, stepping at each closed paper trade"></svg>
+      <div class="legend"><span><i style="background:var(--accent)"></i>bankroll after each closed paper trade</span><span><i style="background:var(--line)"></i>starting bankroll</span></div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </section>
 
-  <section id="setups-section">
-    <div class="sec-h"><h2>Every callout</h2><span class="count" id="setups-count"></span><span class="right" id="setups-sub"></span></div>
-    <div class="panel"><svg class="chart" id="spark" viewBox="0 0 1000 190" preserveAspectRatio="none" aria-label="Net return of each callout under the plan, in order"></svg>
-      <div class="legend"><span><i style="background:var(--win)"></i>finished up</span><span><i style="background:var(--loss)"></i>finished down</span><span><i style="background:transparent;border:2px solid var(--ink);box-sizing:border-box"></i>paper traded</span></div></div>
-    <div class="panel scroll"><table id="setups"><thead><tr>
+  <section id="trades">
+    <div class="sec-h"><h2>Paper trades</h2><span class="count" id="trades-count">0</span><span class="note" id="trades-sub"></span></div>
+    <div class="card tbl"><table id="trades-table"><thead><tr>
+      <th>Time</th><th>Contract</th><th>Grade</th><th>Fills</th><th class="num">Realized</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="callouts">
+    <div class="sec-h"><h2>Every callout</h2><span class="count" id="setups-count">0</span><span class="note" id="setups-sub"></span>
+      <div class="tools"><div class="seg" id="filter" role="group" aria-label="Filter callouts">
+        <button type="button" data-f="all" aria-pressed="true">All</button><button type="button" data-f="traded" aria-pressed="false">Traded</button><button type="button" data-f="up" aria-pressed="false">Up</button><button type="button" data-f="down" aria-pressed="false">Down</button>
+      </div></div></div>
+    <div class="card curve-card"><svg class="chart" id="spark" style="height:170px" aria-label="Net return of each callout under the plan, in order"></svg>
+      <div class="legend"><span><i style="background:var(--win)"></i>finished up</span><span><i style="background:var(--loss)"></i>finished down</span><span><i style="background:transparent;outline:2px solid var(--ink);outline-offset:-2px"></i>paper traded</span><span><i style="background:var(--b-soft)"></i>still open</span></div></div>
+    <div class="card tbl"><table id="setups-table"><thead><tr>
       <th>Time</th><th>Contract</th><th>Lane · trigger</th><th>Grade</th><th class="num">Buy</th><th>Targets</th><th class="num">Net</th><th class="num">High</th><th class="num">Low</th><th>Ended</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
 
-  <section id="calib-section">
-    <div class="sec-h"><h2>Running calibration</h2><span class="count" id="calib-sub"></span><span class="right">win rate · net · high · reached the first target</span></div>
+  <section id="calibration">
+    <div class="sec-h"><h2>Running calibration</h2><span class="count" id="calib-sub">0</span><span class="note">closed setups across every day the bot has run · win rate, net, first-target rate</span></div>
     <div class="calib" id="calib"></div>
-    <div class="panel pad"><ul class="lessons" id="lessons"></ul></div>
+    <div class="card lessons"><h3>Lessons</h3><ul id="lessons"></ul></div>
   </section>
 
   <div class="foot">
     <span id="generated"></span>
     <span>Buy is the ask at the callout. Plan: a third at +35%, +50% and +100%, flat after the last. Net is the whole position under the plan.</span>
-    <span>Information only, not advice.</span>
+    <span>Updates every minute while the scanner runs. Information only, not advice.</span>
   </div>
-</div>
+</main>
 
 <script src="config.js"></script>
 <script>
@@ -204,17 +242,19 @@ details.read div { color: var(--muted); font-size: 12px; padding-top: 4px; line-
   const REFRESH_MS = 60000;
   const $ = (id) => document.getElementById(id);
   const fmtPct = (v, d = 1) => (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(d) + "%";
-  const fmtUsd = (v, d = 2) => (v == null || isNaN(v)) ? "—" : (v < 0 ? "−" : "") + "$" + Math.abs(Number(v)).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+  const fmtUsd = (v, d = 0) => (v == null || isNaN(v)) ? "—" : (v < 0 ? "−" : "") + "$" + Math.abs(Number(v)).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
   const sign = (v) => v > 0 ? "pos" : v < 0 ? "neg" : "zero";
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const td = (text, cls) => el("td", cls, text);
   const css = () => getComputedStyle(document.documentElement);
+  const color = (name) => css().getPropertyValue(name).trim();
+  let last = null, filter = "all";
 
   function gradeCell(s, withScore) {
     const c = el("td");
     c.appendChild(el("span", "grade " + s.grade0, s.grade0));
-    if (withScore) c.appendChild(el("span", "score", String(s.score0)));
-    if (s.grade && s.grade !== s.grade0) c.appendChild(el("span", "path", "→ " + s.grade));
+    if (withScore) c.appendChild(el("span", "gscore", String(s.score0)));
+    if (s.grade && s.grade !== s.grade0) c.appendChild(el("span", "gpath", "→ " + s.grade));
     return c;
   }
   function pill(s) {
@@ -226,15 +266,14 @@ details.read div { color: var(--muted); font-size: 12px; padding-top: 4px; line-
     const w = el("span", "rungs");
     (s.ladder_pct || []).forEach((p, i) => {
       const hit = s.hits && s.hits[i];
-      const r = el("span", "rung" + (hit ? " hit" : ""), hit ? hit : "+" + Math.round(p));
-      r.title = (hit ? "+" + p + "% hit at " + hit : "+" + p + "% not reached");
+      const r = el("span", "rung" + (hit ? " hit" : ""), hit ? hit : "+" + Math.round(p) + "%");
+      r.title = hit ? "+" + p + "% hit at " + hit : "+" + p + "% not reached";
       w.appendChild(r);
     });
     return w;
   }
 
   function render(d) {
-    // status
     const scan = d.last_scan || "";
     let ageMin = null;
     const m = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/.exec(scan);
@@ -245,13 +284,13 @@ details.read div { color: var(--muted); font-size: 12px; padding-top: 4px; line-
       ageMin = Math.round((nowEt - Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) / 60000);
     }
     $("dot").className = "dot " + (ageMin == null ? "" : ageMin <= 3 ? "live" : ageMin <= 20 ? "stale" : "");
-    $("status-text").textContent = ageMin == null ? "no scan yet" : ageMin <= 1 ? "scanning" : ageMin < 60 ? "last scan " + ageMin + " min ago" : "market closed";
-    $("status-time").textContent = scan ? scan.replace(/^\d{4}-\d{2}-\d{2} /, "").replace(" ET", "") + " ET" : "";
-    $("day").textContent = d.day ? new Date(d.day + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "";
+    $("status-text").textContent = ageMin == null ? "no scan yet" : ageMin <= 1 ? "Live · scanning" : ageMin < 60 ? "Last scan " + ageMin + " min ago" : "Market closed";
+    $("status-time").textContent = scan ? scan.replace(/^\d{4}-\d{2}-\d{2} /, "").replace(" ET", "").slice(0, 5) + " ET" : "";
+    $("day").textContent = d.day ? new Date(d.day + "T12:00:00").toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) : "";
+    $("day-sub").textContent = (d.watchlist || []).length + " symbols on the watchlist";
     const wl = $("watchlist"); wl.textContent = "";
     (d.watchlist || []).forEach(s => wl.appendChild(el("span", "chip", s)));
 
-    // summary
     const acct = d.account || {};
     const setups = d.setups || [];
     const trades = d.paper_trades || [];
@@ -259,189 +298,204 @@ details.read div { color: var(--muted); font-size: 12px; padding-top: 4px; line-
     const wins = closed.filter(s => s.net_pct > 0).length;
     const equity = acct.equity, bankroll = acct.bankroll;
     const change = (equity != null && bankroll) ? equity - bankroll : null;
-    const tw = trades.filter(s => s.paper && s.paper.realized > 0).length, tl = trades.filter(s => s.paper && s.paper.realized < 0).length;
-    const kpis = [
-      { k: "Bot bankroll", v: equity != null ? fmtUsd(equity, 0) : "—", cls: sign(change || 0),
-        d: bankroll ? ["started at " + fmtUsd(bankroll, 0) + " · ", el("b", sign(change), (change >= 0 ? "+" : "−") + fmtUsd(Math.abs(change), 0) + " (" + fmtPct(100 * change / bankroll, 0) + ")")] : ["no bankroll set"] },
-      { k: "Realized today", v: fmtUsd(d.realized_today || 0, 0), cls: sign(d.realized_today || 0),
-        d: [trades.length + " paper trade" + (trades.length === 1 ? "" : "s") + (trades.length ? " · " + tw + " won, " + tl + " lost" : "") + (acct.day_pl != null ? " · account " + fmtUsd(acct.day_pl) : "")] },
-      { k: "Callouts", v: String(setups.length), cls: "", d: [["S", "A", "B", "C"].map(g => g + " " + setups.filter(s => s.grade0 === g).length).join("  ·  ")] },
-      { k: "Hit rate", v: closed.length ? Math.round(100 * wins / closed.length) + "%" : "—", cls: closed.length ? (wins / closed.length >= 0.5 ? "pos" : "neg") : "",
-        d: closed.length ? [wins + " of " + closed.length + " closed finished up · " + (setups.length - closed.length) + " open"] : ["nothing closed yet"] },
-    ];
-    const strip = $("strip"); strip.textContent = "";
-    kpis.forEach(t => { const c = el("div", "kpi"); c.appendChild(el("div", "k", t.k)); c.appendChild(el("div", "v " + t.cls, t.v)); const dd = el("div", "d"); t.d.forEach(x => dd.appendChild(typeof x === "string" ? document.createTextNode(x) : x)); c.appendChild(dd); strip.appendChild(c); });
+    $("equity").textContent = equity != null ? fmtUsd(equity) : "—";
+    const delta = $("delta");
+    if (change != null) { delta.className = "delta " + sign(change); delta.textContent = (change >= 0 ? "+" : "−") + fmtUsd(Math.abs(change)) + " · " + fmtPct(100 * change / bankroll, 0); }
+    else { delta.className = "delta zero"; delta.textContent = "no bankroll set"; }
+    const tw = trades.filter(s => s.paper && s.paper.realized > 0).length, tl = trades.filter(s => s.paper && s.paper.realized < 0).length, to = trades.filter(s => s.paper && s.paper.realized == null).length;
+    const hm = $("hero-meta"); hm.textContent = "";
+    hm.appendChild(document.createTextNode("Started at "));
+    hm.appendChild(el("b", null, bankroll ? fmtUsd(bankroll) : "—"));
+    hm.appendChild(document.createTextNode(" · realized today "));
+    hm.appendChild(el("b", sign(d.realized_today || 0), fmtUsd(d.realized_today || 0)));
+    hm.appendChild(document.createTextNode(" on " + trades.length + " paper trade" + (trades.length === 1 ? "" : "s") + (trades.length ? " (" + tw + " won · " + tl + " lost" + (to ? " · " + to + " open" : "") + ")" : "") + (acct.label ? " · " + acct.label : "")));
 
-    // bankroll curve
     drawCurve(trades, bankroll, equity);
-    $("curve-sub").textContent = bankroll ? "stepping at each closed paper trade" : "";
+
+    const counts = ["S", "A", "B", "C"].map(g => setups.filter(s => s.grade0 === g).length);
+    const stats = [
+      { k: "Callouts today", v: String(setups.length), d: "S " + counts[0] + " · A " + counts[1] + " · B " + counts[2] + " · C " + counts[3], bar: counts },
+      { k: "Hit rate", v: closed.length ? Math.round(100 * wins / closed.length) + "%" : "—", cls: closed.length ? (wins / closed.length >= 0.5 ? "pos" : "neg") : "", d: closed.length ? wins + " of " + closed.length + " closed finished up" : "nothing closed yet" },
+      { k: "Reached +35%", v: closed.length ? Math.round(100 * closed.filter(s => s.hits && s.hits[0]).length / closed.length) + "%" : "—", d: closed.length ? closed.filter(s => s.hits && s.hits[0]).length + " took the first target · " + closed.filter(s => s.hits && s.hits[2]).length + " took all three" : "—" },
+      { k: "Account day P&L", v: acct.day_pl != null ? fmtUsd(acct.day_pl, 2) : "—", cls: acct.day_pl != null ? sign(acct.day_pl) : "", d: acct.net_liq != null ? "paper account net liq " + fmtUsd(acct.net_liq, 0) : "" },
+    ];
+    const st = $("stats"); st.textContent = "";
+    stats.forEach(t => {
+      const c = el("div", "stat"); c.appendChild(el("div", "k", t.k)); c.appendChild(el("div", "v " + (t.cls || ""), t.v)); c.appendChild(el("div", "d", t.d));
+      if (t.bar) { const gb = el("div", "gradebar"); const total = Math.max(1, t.bar.reduce((a, b) => a + b, 0)); ["--s", "--a", "--b", "--c"].forEach((v, i) => { const i2 = el("i"); i2.style.width = (100 * t.bar[i] / total) + "%"; i2.style.background = "var(" + v + ")"; gb.appendChild(i2); }); c.appendChild(gb); }
+      st.appendChild(c);
+    });
 
     // paper trades
-    const tb = $("trades").querySelector("tbody"); tb.textContent = "";
-    $("trades-count").textContent = trades.length ? String(trades.length) : "";
-    $("trades-sub").textContent = trades.length ? (acct.label || "") : "the bot buys S, A and high-confluence B callouts";
+    const tb = $("trades-table").querySelector("tbody"); tb.textContent = "";
+    $("trades-count").textContent = String(trades.length);
+    $("trades-sub").textContent = trades.length ? "placed on the paper account the moment each callout posted" : "the bot buys S, A and high-confluence B callouts";
     if (!trades.length) { const r = el("tr"); const c = td("No paper trades yet today.", "empty"); c.colSpan = 5; r.appendChild(c); tb.appendChild(r); }
     trades.forEach(s => {
       const p = s.paper || {};
       const r = el("tr");
-      r.appendChild(td(s.posted, "dim"));
+      r.appendChild(td(s.posted, "time"));
       r.appendChild(td(s.label, "main"));
-      r.appendChild(gradeCell(s, false));
+      r.appendChild(gradeCell(s, true));
       const f = el("td", "fills");
-      f.appendChild(el("span", null, "buy " + (p.qty || "") + (p.entry_avg ? " @ $" + Number(p.entry_avg).toFixed(2) : " · " + String(p.entry_status || "").toLowerCase())));
+      f.appendChild(el("span", "buy", "buy " + (p.qty || "") + (p.entry_avg ? " @ $" + Number(p.entry_avg).toFixed(2) : " · " + String(p.entry_status || "").toLowerCase())));
       (p.sells || []).filter(x => x.status === "FILLED").forEach(x => f.appendChild(el("span", "pos", "+" + Math.round(x.pct) + "%  sold " + x.qty + " @ $" + Number(x.avg || x.price).toFixed(2))));
       if (p.exit && p.exit.status === "FILLED") f.appendChild(el("span", null, (p.exit.reason === "invalidated" ? "exit" : p.exit.reason || "exit") + "  sold " + p.exit.qty + " @ " + (p.exit.avg != null ? "$" + Number(p.exit.avg).toFixed(2) : "market")));
-      const left = (p.sells || []).filter(x => x.status !== "FILLED" && x.status !== "CANCELLED" && x.status !== "CANCELED").length;
-      if (s.status === "open" && left) f.appendChild(el("span", "dim", left + " sell" + (left > 1 ? "s" : "") + " resting"));
+      const left = (p.sells || []).filter(x => !["FILLED", "CANCELLED", "CANCELED", "FAILED"].includes(x.status)).length;
+      if (s.status === "open" && left) f.appendChild(el("span", "buy", left + " sell" + (left > 1 ? "s" : "") + " resting at target"));
       r.appendChild(f);
       const rz = p.realized;
-      r.appendChild(td(rz == null ? "open" : fmtUsd(rz, 0), "num " + (rz == null ? "zero" : sign(rz))));
+      r.appendChild(td(rz == null ? "open" : fmtUsd(rz), "num " + (rz == null ? "zero" : sign(rz))));
       tb.appendChild(r);
     });
 
-    // callouts
-    const sb = $("setups").querySelector("tbody"); sb.textContent = "";
-    $("setups-count").textContent = setups.length ? String(setups.length) : "";
-    $("setups-sub").textContent = setups.length ? (closed.length + " closed · " + (setups.length - closed.length) + " open") : "the scanner has not posted anything yet";
-    if (!setups.length) { const r = el("tr"); const c = td("No callouts yet today.", "empty"); c.colSpan = 10; r.appendChild(c); sb.appendChild(r); }
-    setups.forEach(s => {
+    renderSetups(setups);
+    drawSpark(setups);
+
+    // calibration
+    const cal = $("calib"); cal.textContent = "";
+    const tables = d.calibration || {};
+    const names = { grade: "By grade", lane: "By lane", hour: "By hour band", "B score": "B grades by score", trigger: "By trigger", kind: "By setup kind" };
+    ["grade", "lane", "hour", "B score", "trigger", "kind"].filter(t => tables[t] && tables[t].length).forEach(t => {
+      const p = el("div", "card cal"); p.appendChild(el("h3", null, names[t]));
+      const h = el("div", "head"); ["", "n", "win rate", "net"].forEach(x => h.appendChild(el("span", null, x))); p.appendChild(h);
+      tables[t].forEach(row => {
+        const r = el("div", "row");
+        const lbl = el("div", "lbl"); if (t === "grade") lbl.appendChild(el("span", "grade " + row.bucket, row.bucket)); else lbl.textContent = String(row.bucket).replace(/_/g, " ");
+        r.appendChild(lbl);
+        r.appendChild(el("div", "n", String(row.n)));
+        const mt = el("div", "meter"); const fill = el("i"); fill.style.width = Math.max(0, Math.min(100, row.win_pct)) + "%"; fill.style.background = row.win_pct >= 50 ? "var(--win)" : "var(--loss)"; mt.appendChild(fill); mt.title = row.win_pct + "% won · " + row.t1_pct + "% reached +35%"; r.appendChild(mt);
+        r.appendChild(el("div", "net " + sign(row.net), fmtPct(row.net)));
+        p.appendChild(r);
+      });
+      cal.appendChild(p);
+    });
+    $("calib-sub").textContent = String(d.closed_all_time || 0);
+    const ls = $("lessons"); ls.textContent = "";
+    (d.lessons || []).forEach(x => ls.appendChild(el("li", null, x)));
+    $("generated").textContent = d.generated ? "Snapshot " + d.generated.replace("T", " ").replace(/\.\d+/, "").replace(/-05:00|-04:00/, " ET") : "";
+  }
+
+  function renderSetups(setups) {
+    const sb = $("setups-table").querySelector("tbody"); sb.textContent = "";
+    const closed = setups.filter(s => s.status !== "open");
+    $("setups-count").textContent = String(setups.length);
+    $("setups-sub").textContent = setups.length ? closed.length + " closed · " + (setups.length - closed.length) + " open" : "the scanner has not posted anything yet";
+    const rows = setups.filter(s => filter === "all" || (filter === "traded" && s.paper) || (filter === "up" && s.status !== "open" && s.net_pct > 0) || (filter === "down" && s.status !== "open" && s.net_pct < 0));
+    if (!rows.length) { const r = el("tr"); const c = td(setups.length ? "Nothing matches this filter." : "No callouts yet today.", "empty"); c.colSpan = 10; r.appendChild(c); sb.appendChild(r); }
+    rows.forEach(s => {
       const r = el("tr");
-      r.appendChild(td(s.posted, "dim"));
+      r.appendChild(td(s.posted, "time"));
       const lc = td(s.label, "main");
-      if (s.read_path) { const dd = el("details", "read"); dd.appendChild(el("summary", null, "why")); dd.appendChild(el("div", null, s.read_path)); lc.appendChild(dd); }
+      if (s.read_path) { const dd = el("details", "why"); dd.appendChild(el("summary", null, "why")); dd.appendChild(el("div", null, s.read_path)); lc.appendChild(dd); }
       r.appendChild(lc);
       r.appendChild(td((s.lane ? s.lane + "m" : "—") + (s.trigger ? " · " + s.trigger.replace(/_/g, " ") : ""), "dim"));
       r.appendChild(gradeCell(s, true));
       r.appendChild(td("$" + Number(s.buy).toFixed(2), "num"));
       const rc = el("td"); rc.appendChild(rungs(s)); r.appendChild(rc);
       r.appendChild(td(fmtPct(s.net_pct), "num " + sign(s.net_pct)));
-      r.appendChild(td(fmtPct(s.high_pct, 0), "num"));
-      r.appendChild(td(fmtPct(s.low_pct, 0), "num"));
+      r.appendChild(td(fmtPct(s.high_pct, 0), "num dim"));
+      r.appendChild(td(fmtPct(s.low_pct, 0), "num dim"));
       const oc = el("td"); oc.appendChild(pill(s)); r.appendChild(oc);
       sb.appendChild(r);
     });
-    drawSpark(setups);
-
-    // calibration
-    const cal = $("calib"); cal.textContent = "";
-    const tables = d.calibration || {};
-    const names = { grade: "By grade", lane: "By lane", hour: "By hour band", "B score": "B grades by score", trigger: "By trigger", kind: "By kind" };
-    ["grade", "lane", "hour", "B score", "trigger", "kind"].filter(t => tables[t] && tables[t].length).forEach(t => {
-      const p = el("div", "panel cal"); p.appendChild(el("h3", null, names[t]));
-      const tbl = el("table"); const th = el("thead"); const hr = el("tr");
-      [["", ""], ["n", "num"], ["win", "num"], ["net", "num"], ["high", "num"], ["+35%", ""]].forEach(([h, c]) => hr.appendChild(el("th", c, h)));
-      th.appendChild(hr); tbl.appendChild(th);
-      const bd = el("tbody");
-      tables[t].forEach(row => {
-        const r = el("tr");
-        const first = td(row.bucket, "main"); if (t === "grade") { first.textContent = ""; first.appendChild(el("span", "grade " + row.bucket, row.bucket)); }
-        r.appendChild(first);
-        r.appendChild(td(String(row.n), "num dim"));
-        r.appendChild(td(row.win_pct + "%", "num " + (row.win_pct >= 50 ? "pos" : "neg")));
-        r.appendChild(td(fmtPct(row.net), "num " + sign(row.net)));
-        r.appendChild(td(fmtPct(row.high, 0), "num dim"));
-        const bc = el("td", "barcell"); const bar = el("div", "bar"); const fill = el("i"); fill.style.width = Math.max(0, Math.min(100, row.t1_pct)) + "%"; bar.appendChild(fill); bar.title = row.t1_pct + "% reached +35%"; bc.appendChild(bar); r.appendChild(bc);
-        bd.appendChild(r);
-      });
-      tbl.appendChild(bd); p.appendChild(tbl); cal.appendChild(p);
-    });
-    $("calib-sub").textContent = (d.closed_all_time || 0) + " closed setups, all days";
-    const ls = $("lessons"); ls.textContent = "";
-    (d.lessons || []).forEach(x => ls.appendChild(el("li", null, x)));
-    $("generated").textContent = d.generated ? "Snapshot " + d.generated.replace("T", " ").replace(/\.\d+/, "").replace(/-05:00|-04:00/, " ET") : "";
   }
+  $("filter").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    filter = b.dataset.f;
+    $("filter").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    if (last) { renderSetups(last.setups || []); drawSpark(last.setups || []); }
+  });
 
   function svgEl(ns, tag, attrs) { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
   function sized(svg, H) {
-    // draw in CSS pixels: the viewBox follows the element's real width, so text is never stretched
     const W = Math.max(320, Math.round(svg.clientWidth || svg.parentNode.clientWidth || 1000));
     svg.setAttribute("viewBox", "0 0 " + W + " " + H);
     svg.setAttribute("preserveAspectRatio", "xMinYMin meet");
     while (svg.firstChild) svg.removeChild(svg.firstChild);
     return W;
   }
+  const MONO = "JetBrains Mono, monospace";
 
   function drawCurve(trades, bankroll, equity) {
-    const svg = $("curve");
-    const ns = "http://www.w3.org/2000/svg";
-    const H = 190, L = 64, R = 20, T = 16, B = 32;
+    const svg = $("curve"), ns = "http://www.w3.org/2000/svg";
+    const H = 240, L = 64, R = 24, T = 22, B = 34;
     const W = sized(svg, H);
-    const c = css();
-    if (!bankroll) { svg.appendChild(svgEl(ns, "text", { x: L, y: 100, fill: c.getPropertyValue("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = "No bankroll configured."; return; }
+    if (!bankroll) { svg.appendChild(svgEl(ns, "text", { x: L, y: 120, fill: color("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = "No bankroll configured."; return; }
     const pts = [{ t: "open", v: bankroll }];
     let eq = bankroll;
     trades.filter(s => s.paper && s.paper.realized != null).forEach(s => { eq += s.paper.realized; pts.push({ t: s.closed || s.posted, v: eq, label: s.label, d: s.paper.realized }); });
     if (equity != null) pts.push({ t: "now", v: equity, now: true });
     const vals = pts.map(p => p.v);
-    let lo = Math.min(...vals), hi = Math.max(...vals);
-    const span = Math.max(hi - lo, bankroll * 0.08); lo = Math.min(lo, bankroll) - span * 0.15; hi = Math.max(hi, bankroll) + span * 0.15;
+    let lo = Math.min(...vals, bankroll), hi = Math.max(...vals, bankroll);
+    const span = Math.max(hi - lo, bankroll * 0.1); lo -= span * 0.2; hi += span * 0.25;
     const x = (i) => L + (W - L - R) * (pts.length === 1 ? 0 : i / (pts.length - 1));
     const y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
-    // gridlines: 4
     for (let k = 0; k <= 4; k++) {
       const v = lo + (hi - lo) * k / 4;
-      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: c.getPropertyValue("--line-2"), "stroke-width": 1 }));
-      const t = svgEl(ns, "text", { x: L - 10, y: y(v) + 4, "text-anchor": "end", fill: c.getPropertyValue("--faint"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); t.textContent = "$" + Math.round(v); svg.appendChild(t);
+      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: color("--line-2"), "stroke-width": 1 }));
+      svg.appendChild(svgEl(ns, "text", { x: L - 12, y: y(v) + 4, "text-anchor": "end", fill: color("--faint"), "font-size": 11, "font-family": MONO })).textContent = "$" + Math.round(v);
     }
-    svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(bankroll), y2: y(bankroll), stroke: c.getPropertyValue("--line"), "stroke-width": 1.5, "stroke-dasharray": "4 4" }));
-    // step path
+    svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(bankroll), y2: y(bankroll), stroke: color("--line"), "stroke-width": 1.5, "stroke-dasharray": "5 5" }));
+    const grad = svgEl(ns, "linearGradient", { id: "gfill", x1: 0, x2: 0, y1: 0, y2: 1 });
+    grad.appendChild(svgEl(ns, "stop", { offset: "0%", "stop-color": color("--accent"), "stop-opacity": 0.22 }));
+    grad.appendChild(svgEl(ns, "stop", { offset: "100%", "stop-color": color("--accent"), "stop-opacity": 0.02 }));
+    const defs = svgEl(ns, "defs", {}); defs.appendChild(grad); svg.appendChild(defs);
     let dpath = "", area = "";
     pts.forEach((p, i) => { const px = x(i), py = y(p.v); if (i === 0) { dpath = "M" + px + "," + py; area = "M" + px + "," + y(bankroll) + " L" + px + "," + py; } else { const prev = y(pts[i - 1].v); dpath += " L" + px + "," + prev + " L" + px + "," + py; area += " L" + px + "," + prev + " L" + px + "," + py; } });
     area += " L" + x(pts.length - 1) + "," + y(bankroll) + " Z";
-    svg.appendChild(svgEl(ns, "path", { d: area, fill: c.getPropertyValue("--accent"), opacity: 0.12 }));
-    svg.appendChild(svgEl(ns, "path", { d: dpath, fill: "none", stroke: c.getPropertyValue("--accent"), "stroke-width": 2.5, "stroke-linejoin": "round" }));
+    svg.appendChild(svgEl(ns, "path", { d: area, fill: "url(#gfill)" }));
+    svg.appendChild(svgEl(ns, "path", { d: dpath, fill: "none", stroke: color("--accent"), "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" }));
     let lastLabelX = -1e9;
     pts.forEach((p, i) => {
       if (i === 0) return;
-      const dot = svgEl(ns, "circle", { cx: x(i), cy: y(p.v), r: p.now ? 5 : 4, fill: p.now ? c.getPropertyValue("--accent") : c.getPropertyValue("--panel"), stroke: c.getPropertyValue("--accent"), "stroke-width": 2 });
-      const title = document.createElementNS(ns, "title"); title.textContent = p.now ? "now · $" + p.v.toFixed(2) : p.t + " " + p.label + " " + (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0) + " → $" + p.v.toFixed(0); dot.appendChild(title); svg.appendChild(dot);
+      const lx = x(i), ly = y(p.v);
+      const dot = svgEl(ns, "circle", { cx: lx, cy: ly, r: p.now ? 5.5 : 4.5, fill: p.now ? color("--accent") : color("--surface"), stroke: color("--accent"), "stroke-width": 2.25 });
+      dot.appendChild(svgEl(ns, "title", {})).textContent = p.now ? "now · $" + p.v.toFixed(2) : p.t + " " + p.label + " " + (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0) + " → $" + p.v.toFixed(0);
+      svg.appendChild(dot);
       const isLast = i === pts.length - 1;
-      const lx = x(i);
-      if (isLast || lx - lastLabelX > 48) {                       // skip labels that would collide
-        const lab = svgEl(ns, "text", { x: lx, y: H - 10, "text-anchor": isLast ? "end" : "middle", fill: c.getPropertyValue("--muted"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); lab.textContent = p.now ? "now" : p.t; svg.appendChild(lab);
+      if (isLast || lx - lastLabelX > 56) {
+        svg.appendChild(svgEl(ns, "text", { x: lx, y: H - 10, "text-anchor": isLast ? "end" : "middle", fill: color("--muted"), "font-size": 11, "font-family": MONO })).textContent = p.now ? "now" : p.t;
         lastLabelX = lx;
       }
       if (!p.now) {
-        const v = svgEl(ns, "text", { x: lx, y: y(p.v) - 9, "text-anchor": "middle", fill: c.getPropertyValue(p.d >= 0 ? "--win" : "--loss"), "font-size": 11, "font-weight": 600, "font-family": "JetBrains Mono, monospace" }); v.textContent = (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0); svg.appendChild(v);
+        const t = svgEl(ns, "text", { x: lx, y: ly - 11, "text-anchor": "middle", fill: color(p.d >= 0 ? "--win" : "--loss"), "font-size": 11.5, "font-weight": 600, "font-family": MONO }); t.textContent = (p.d >= 0 ? "+" : "−") + "$" + Math.abs(p.d).toFixed(0); svg.appendChild(t);
       }
     });
-    const open = svgEl(ns, "text", { x: L, y: H - 10, "text-anchor": "start", fill: c.getPropertyValue("--muted"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); open.textContent = "open"; svg.appendChild(open);
+    svg.appendChild(svgEl(ns, "text", { x: L, y: H - 10, "text-anchor": "start", fill: color("--muted"), "font-size": 11, "font-family": MONO })).textContent = "open";
   }
 
   function drawSpark(setups) {
-    const svg = $("spark");
-    const ns = "http://www.w3.org/2000/svg";
-    const H = 190, L = 52, R = 20, T = 16, B = 28;
+    const svg = $("spark"), ns = "http://www.w3.org/2000/svg";
+    const H = 170, L = 52, R = 20, T = 16, B = 28;
     const W = sized(svg, H);
-    const c = css();
-    const n = setups.length;
-    if (!n) { svg.appendChild(svgEl(ns, "text", { x: L, y: 100, fill: c.getPropertyValue("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = "No callouts yet."; return; }
-    const vals = setups.map(s => s.net_pct || 0);
+    const rows = setups.filter(s => filter === "all" || (filter === "traded" && s.paper) || (filter === "up" && s.status !== "open" && s.net_pct > 0) || (filter === "down" && s.status !== "open" && s.net_pct < 0));
+    const n = rows.length;
+    if (!n) { svg.appendChild(svgEl(ns, "text", { x: L, y: 90, fill: color("--muted"), "font-size": 14, "font-family": "Inter, sans-serif" })).textContent = setups.length ? "Nothing matches this filter." : "No callouts yet."; return; }
+    const vals = rows.map(s => s.net_pct || 0);
     const max = Math.max(20, Math.ceil(Math.max(...vals.map(Math.abs)) / 20) * 20);
     const y = (v) => T + (H - T - B) * (1 - (v + max) / (2 * max));
     [-max, -max / 2, 0, max / 2, max].forEach(v => {
-      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: c.getPropertyValue(v === 0 ? "--line" : "--line-2"), "stroke-width": v === 0 ? 1.5 : 1 }));
-      const t = svgEl(ns, "text", { x: L - 10, y: y(v) + 4, "text-anchor": "end", fill: c.getPropertyValue("--faint"), "font-size": 11, "font-family": "JetBrains Mono, monospace" }); t.textContent = (v > 0 ? "+" : "") + v + "%"; svg.appendChild(t);
+      svg.appendChild(svgEl(ns, "line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: color(v === 0 ? "--line" : "--line-2"), "stroke-width": v === 0 ? 1.5 : 1 }));
+      svg.appendChild(svgEl(ns, "text", { x: L - 12, y: y(v) + 4, "text-anchor": "end", fill: color("--faint"), "font-size": 11, "font-family": MONO })).textContent = (v > 0 ? "+" : "") + v + "%";
     });
-    const slot = (W - L - R) / n, bw = Math.max(6, Math.min(40, slot * 0.6));
-    const labelEvery = Math.max(1, Math.ceil(44 / slot));            // keep time labels from overlapping when crowded
-    setups.forEach((s, i) => {
+    const slot = (W - L - R) / n, bw = Math.max(6, Math.min(36, slot * 0.56));
+    const labelEvery = Math.max(1, Math.ceil(46 / slot));
+    rows.forEach((s, i) => {
       const v = s.net_pct || 0;
       const x0 = L + i * slot + (slot - bw) / 2;
-      const r = svgEl(ns, "rect", { x: x0, width: bw, y: Math.min(y(v), y(0)), height: Math.max(2, Math.abs(y(v) - y(0))), rx: 3,
-        fill: c.getPropertyValue(v > 0 ? "--win" : v < 0 ? "--loss" : "--flat"), opacity: s.status === "open" ? 0.45 : 1 });
-      if (s.paper) { r.setAttribute("stroke", c.getPropertyValue("--ink")); r.setAttribute("stroke-width", "2"); }
-      const title = document.createElementNS(ns, "title"); title.textContent = s.posted + " " + s.label + " · " + s.grade0 + " " + s.score0 + " · " + fmtPct(v) + (s.paper ? " · paper traded" : "") + (s.status === "open" ? " · open" : ""); r.appendChild(title);
+      const r = svgEl(ns, "rect", { x: x0, width: bw, y: Math.min(y(v), y(0)), height: Math.max(2, Math.abs(y(v) - y(0))), rx: 4,
+        fill: color(s.status === "open" ? "--b-soft" : v > 0 ? "--win" : v < 0 ? "--loss" : "--flat") });
+      if (s.paper) { r.setAttribute("stroke", color("--ink")); r.setAttribute("stroke-width", "2"); }
+      r.appendChild(svgEl(ns, "title", {})).textContent = s.posted + " " + s.label + " · " + s.grade0 + " " + s.score0 + " · " + fmtPct(v) + (s.paper ? " · paper traded" : "") + (s.status === "open" ? " · open" : "");
       svg.appendChild(r);
-      if (i % labelEvery === 0) {
-        const lab = svgEl(ns, "text", { x: x0 + bw / 2, y: H - 9, "text-anchor": "middle", fill: c.getPropertyValue("--faint"), "font-size": 10.5, "font-family": "JetBrains Mono, monospace" }); lab.textContent = s.posted; svg.appendChild(lab);
-      }
+      if (i % labelEvery === 0) svg.appendChild(svgEl(ns, "text", { x: x0 + bw / 2, y: H - 9, "text-anchor": "middle", fill: color("--faint"), "font-size": 10.5, "font-family": MONO })).textContent = s.posted;
     });
   }
+
   let resizeTimer = null;
   window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (last) render(last); }, 150); });
 
-  let last = null;
   async function load() {
     try {
       const url = DATA_URL + (DATA_URL.indexOf("?") >= 0 ? "&" : "?") + "t=" + Math.floor(Date.now() / 30000);
@@ -450,7 +504,7 @@ details.read div { color: var(--muted); font-size: 12px; padding-top: 4px; line-
       const d = await res.json();
       last = d; render(d);
     } catch (e) {
-      $("status-text").textContent = last ? "refresh failed" : "could not load data (" + e.message + ")";
+      $("status-text").textContent = last ? "Refresh failed" : "Could not load data (" + e.message + ")";
       $("dot").className = "dot stale";
     }
   }
