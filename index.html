@@ -702,7 +702,7 @@ footer b { color: var(--text); font-weight: 500; }
   async function load() {
     let d = null;
     if (DATA_BASE) {           // newest minute file first (the CDN has never seen that path, so it is fresh); a few back while live
-      const probes = state.liveSeen ? 4 : 2;
+      const probes = state.liveSeen ? 7 : 2;
       for (let k = 0; k < probes && !d; k++) { try { d = await fetchJson(DATA_BASE + "m/" + etStamp(70 + 60 * k) + ".json"); state.liveSeen = true; } catch (e) {} }
       if (!d && state.liveSeen && state.d) { state.left = REFRESH; return; }   // chain paused (market closed): keep what we have
     }
