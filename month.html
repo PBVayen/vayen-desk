@@ -393,7 +393,9 @@ footer b { color: var(--text); font-weight: 500; }
     days.forEach(x => { const [y, mo, dd] = x.day.split("-").map(Number); [Date.UTC(y, mo - 1, dd, 9, 30) / 1000, Date.UTC(y, mo - 1, dd, 16, 0) / 1000].forEach(t => { if (!pts.has(t)) pts.set(t, null); }); });
     const data = [...pts.entries()].sort((p, q) => p[0] - q[0]).map(([time, v]) => v == null ? { time } : { time, value: v });
     C.eq.s.applyOptions({ baseValue: { type: "price", price: h.bankroll || 0 } }); C.eq.s.setData(data); C.eq.ch.timeScale().fitContent(); setTimeout(() => C.eq.ch.timeScale().fitContent(), 150);
-    C.hist.s.setData(days.map(x => ({ time: x.day, value: x.realized, color: x.realized >= 0 ? "#34d399" : "#fb7185" }))); C.hist.ch.timeScale().fitContent(); setTimeout(() => C.hist.ch.timeScale().fitContent(), 150);
+    C.hist.s.setData(days.map(x => ({ time: x.day, value: x.realized, color: x.realized >= 0 ? "#34d399" : "#fb7185" })));
+    const fitHist = () => { if (days.length >= 12) C.hist.ch.timeScale().fitContent(); else C.hist.ch.timeScale().setVisibleLogicalRange({ from: -0.6, to: 11.4 }); };   // keep single bars bar-sized
+    fitHist(); setTimeout(fitHist, 150);
     const L = $("hist-legend"); L.textContent = ""; const it = (k, v, c) => { const s = el("span"); s.appendChild(document.createTextNode(k + " ")); const b = el("b", null, v); if (c) b.style.color = c; s.appendChild(b); L.appendChild(s); };
     it("Realized per day", ""); it("best", usd(best ? best.realized : 0), "#34d399"); if (ms.worst_day) it("worst", usd((days.find(x => x.day === ms.worst_day) || {}).realized), "#fb7185"); it("profit factor", ms.profit_factor != null ? String(ms.profit_factor) : "—");
     // table, newest first
