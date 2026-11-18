@@ -349,6 +349,7 @@ footer b { color: var(--text); font-weight: 500; }
   "use strict";
   const LW = window.LightweightCharts;
   const DATA_URL = window.DASH_DATA_URL || "./data.json";
+  const DATA_BASE = window.DASH_DATA_BASE || null;   // per-minute files live at <base>m/<ET YYYYMMDDHHMM>.json
   const REFRESH = 60;
   const $ = (id) => document.getElementById(id);
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -362,7 +363,7 @@ footer b { color: var(--text); font-weight: 500; }
   const GC = { S: "#c4b5fd", A: "#7c5cfc", B: "#38bdf8", C: "#7a82a0" };
   const EMAC = { 5: "#fbbf24", 9: "#f472b6", 20: "#a78bfa", 50: "#38bdf8", 200: "#ffffff" };
   const LVL = { PDH: ["#7a82a0", 0], PDL: ["#7a82a0", 0], PDC: ["#4b5270", 2], ORH: ["#a78bfa", 1], ORL: ["#a78bfa", 1], PMH: ["#38bdf8", 2], PML: ["#38bdf8", 2], P: ["#fbbf24", 3], R1: ["#4b5270", 3], S1: ["#4b5270", 3] };
-  const state = { touched: false, d: null, sym: null, tf: 1, ov: { ema: true, vwap: true, levels: true, vol: true, marks: true }, con: null, cema: { 5: true, 9: true, 20: true, 50: true, 200: true }, cov: { plan: true, fills: true }, filter: "all", counted: false, fitSym: null, fitCon: null, left: REFRESH };
+  const state = { touched: false, liveSeen: false, d: null, sym: null, tf: 1, ov: { ema: true, vwap: true, levels: true, vol: true, marks: true }, con: null, cema: { 5: true, 9: true, 20: true, 50: true, 200: true }, cov: { plan: true, fills: true }, filter: "all", counted: false, fitSym: null, fitCon: null, left: REFRESH };
   const C = {};
 
   // ---------- atmosphere ----------
@@ -642,8 +643,16 @@ footer b { color: var(--text); font-weight: 500; }
 
   // ---------- load ----------
   function render(d) { state.d = d; renderTop(d); renderEq(d); renderTabs(); renderMkt(); renderConTabs(); renderCon(); renderLedger(d); renderCal(d); }
+  const etStamp = (backSec) => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(Date.now() - backSec * 1000)); const g = (t) => p.find(x => x.type === t).value; return g("year") + g("month") + g("day") + ((+g("hour")) % 24 < 10 ? "0" : "") + ((+g("hour")) % 24) + g("minute"); };
+  async function fetchJson(url) { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }
   async function load() {
-    try { const r = await fetch(DATA_URL + (DATA_URL.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); render(await r.json()); }
+    let d = null;
+    if (DATA_BASE) {           // newest minute file first (the CDN has never seen that path, so it is fresh); a few back while live
+      const probes = state.liveSeen ? 4 : 2;
+      for (let k = 0; k < probes && !d; k++) { try { d = await fetchJson(DATA_BASE + "m/" + etStamp(70 + 60 * k) + ".json"); state.liveSeen = true; } catch (e) {} }
+      if (!d && state.liveSeen && state.d) { state.left = REFRESH; return; }   // chain paused (market closed): keep what we have
+    }
+    try { if (!d) d = await fetchJson(DATA_URL + (DATA_URL.includes("?") ? "&" : "?") + "t=" + Date.now()); render(d); }
     catch (e) { toast("data load failed: " + e.message); $("status").textContent = "data unavailable"; $("dot").className = "dot"; }
     state.left = REFRESH;
   }
