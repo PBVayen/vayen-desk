@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vayen Desk · Month</title>
+<meta name="description" content="The paper desk across days: equity curve, day-by-day results and the running calibration.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+:root {
+  --bg: #07080f; --bg2: #0c0e1a; --accent: #7c5cfc; --accent2: #a78bfa; --accent3: #c4b5fd;
+  --text: #f0f0f8; --muted: #7a82a0; --dim: #4b5270;
+  --card: rgba(255,255,255,.03); --card2: rgba(255,255,255,.055);
+  --border: rgba(124,92,252,.18); --border2: rgba(124,92,252,.5);
+  --up: #34d399; --down: #fb7185; --cyan: #38bdf8; --amber: #fbbf24; --pink: #f472b6;
+  --sans: "Inter", system-ui, -apple-system, sans-serif; --disp: "Space Grotesk", var(--sans);
+  --orb: "Orbitron", var(--disp); --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --r: 18px; --mx: 50vw; --my: 20vh;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--sans); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+::selection { background: rgba(124,92,252,.45); }
+::-webkit-scrollbar { height: 8px; width: 8px; } ::-webkit-scrollbar-thumb { background: rgba(124,92,252,.3); border-radius: 8px; }
+
+/* ---------- atmosphere ---------- */
+.orbs, .gridbg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+/* soft radial gradients only: no blur filters, so the orbs rasterize once and drift on the compositor */
+.orbs::before, .orbs::after { content: ""; position: absolute; border-radius: 50%; will-change: transform; }
+.orbs::before { width: 1000px; height: 1000px; left: -340px; top: -420px; background: radial-gradient(circle, rgba(124,92,252,.30) 0%, rgba(124,92,252,.12) 30%, rgba(124,92,252,0) 68%); animation: drift 26s ease-in-out infinite alternate; }
+.orbs::after { width: 900px; height: 900px; right: -340px; top: 34vh; background: radial-gradient(circle, rgba(56,189,248,.13) 0%, rgba(56,189,248,.05) 30%, rgba(56,189,248,0) 68%); animation: drift 32s ease-in-out infinite alternate-reverse; }
+@keyframes drift { to { transform: translate3d(60px, 40px, 0); } }
+.gridbg { background-image: linear-gradient(rgba(124,92,252,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(124,92,252,.07) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 20%, transparent 100%); -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 0%, #000 20%, transparent 100%); }
+/* the mouse spotlight is one fixed, pre-painted circle moved with a transform (compositor only) */
+.spot { position: fixed; left: -700px; top: -700px; width: 1400px; height: 1400px; border-radius: 50%; pointer-events: none; z-index: 0; background: radial-gradient(circle, rgba(124,92,252,.11) 0%, rgba(124,92,252,.04) 30%, rgba(124,92,252,0) 55%); will-change: transform; transform: translate3d(-9999px, -9999px, 0); }
+@media (hover: none) { .spot { display: none; } }
+.wrap { position: relative; z-index: 1; }
+
+/* ---------- nav ---------- */
+.nav { position: sticky; top: 0; z-index: 50; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(7,8,15,.82); border-bottom: 1px solid var(--border); will-change: transform; }
+.nav-in { max-width: 1320px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 22px; }
+.logo { display: flex; align-items: baseline; gap: 10px; }
+.logo b { font-family: var(--orb); font-weight: 900; font-size: 19px; letter-spacing: .14em; background: linear-gradient(120deg, #fff 0%, var(--accent3) 45%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.logo span { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .18em; text-transform: uppercase; }
+.links { display: flex; gap: 4px; margin-left: 10px; }
+.links a { padding: 7px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 500; transition: .2s; }
+.links a:hover { color: var(--text); background: var(--card2); }
+.nav-r { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font-family: var(--mono); font-size: 11.5px; letter-spacing: .04em; color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); }
+.dot.live { background: var(--up); box-shadow: 0 0 8px var(--up), 0 0 18px rgba(52,211,153,.45); animation: pulse 1.8s ease-in-out infinite; }
+.dot.stale { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+@keyframes pulse { 50% { opacity: .55; } }
+.clock { font-family: var(--mono); font-size: 12.5px; color: var(--text); letter-spacing: .06em; }
+.clock small { color: var(--muted); margin-left: 6px; font-size: 10.5px; }
+.ring { width: 26px; height: 26px; position: relative; display: grid; place-items: center; }
+.ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 2.2; }
+.ring .tr { stroke: rgba(124,92,252,.2); } .ring .pr { stroke: var(--accent2); stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.ring i { font-style: normal; font-family: var(--mono); font-size: 8.5px; color: var(--muted); }
+
+/* ---------- ticker ---------- */
+.tape { border-bottom: 1px solid var(--border); background: rgba(12,14,26,.5); overflow: hidden; }
+.tape-in { display: flex; width: max-content; animation: slide 60s linear infinite; will-change: transform; }
+.tape:hover .tape-in { animation-play-state: paused; }
+@keyframes slide { to { transform: translateX(-50%); } }
+.tk { display: inline-flex; align-items: center; gap: 10px; padding: 9px 26px; font-family: var(--mono); font-size: 12px; color: var(--muted); border-right: 1px solid rgba(124,92,252,.12); white-space: nowrap; }
+.tk b { color: var(--text); font-weight: 500; letter-spacing: .08em; }
+.tk .px { color: var(--text); }
+.pos { color: var(--up); } .neg { color: var(--down); } .zero { color: var(--muted); }
+
+/* ---------- layout helpers ---------- */
+.page { max-width: 1320px; margin: 0 auto; padding: 0 24px 80px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: var(--accent2); display: flex; align-items: center; gap: 12px; }
+.eyebrow::before { content: ""; width: 26px; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
+.sec { padding-top: 86px; }
+.sec-h { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 26px; flex-wrap: wrap; }
+.sec-h h2 { margin: 8px 0 6px; font-family: var(--disp); font-weight: 700; font-size: clamp(26px, 3vw, 36px); letter-spacing: -.02em; line-height: 1.1; }
+.sec-h h2 em { font-style: normal; background: linear-gradient(120deg, #fff 0%, var(--accent3) 45%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sec-h p { margin: 0; color: var(--muted); max-width: 640px; font-size: 14.5px; }
+.card { position: relative; background: rgba(13,15,28,.74); border: 1px solid var(--border); border-radius: var(--r); transition: border-color .25s, background .25s; }
+.card:hover { border-color: var(--border2); background: rgba(17,19,36,.8); }
+.card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, rgba(196,181,253,.35), transparent 40%, transparent 60%, rgba(56,189,248,.18)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: .6; }
+.rv { opacity: 0; transform: translateY(22px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+.rv.in { opacity: 1; transform: none; }
+#ledger, #calibration { content-visibility: auto; contain-intrinsic-size: 1px 1400px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- hero ---------- */
+.hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 28px; align-items: stretch; padding-top: 64px; }
+.hero-l { display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+.hero h1 { margin: 0; font-family: var(--orb); font-weight: 900; font-size: clamp(54px, 7.4vw, 104px); line-height: .95; letter-spacing: -.01em; background: linear-gradient(120deg, #ffffff 0%, #c4b5fd 38%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; position: relative; align-self: flex-start; }
+.hero h1::after { content: ""; position: absolute; left: 10%; right: 10%; top: 20%; bottom: 10%; background: radial-gradient(ellipse, rgba(124,92,252,.28), transparent 70%); z-index: -1; pointer-events: none; }
+.hero .sub { color: var(--muted); font-size: 15px; max-width: 560px; margin: 0; }
+.hero .sub b { color: var(--text); font-weight: 500; }
+.delta { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font-family: var(--mono); font-size: 13.5px; width: max-content; max-width: 100%; }
+.delta::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; flex: none; }
+.delta.pos { color: var(--up); border-color: rgba(52,211,153,.35); } .delta.neg { color: var(--down); border-color: rgba(251,113,133,.35); }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.tile { padding: 16px 18px; border-radius: 14px; }
+.tile .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); }
+.tile .v { margin-top: 8px; font-family: var(--disp); font-weight: 700; font-size: 28px; letter-spacing: -.02em; line-height: 1; }
+.tile .s { margin-top: 6px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.eqcard { padding: 22px 22px 14px; display: flex; flex-direction: column; min-height: 360px; }
+.eqcard .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.eqcard h3 { margin: 6px 0 0; font-family: var(--disp); font-size: 17px; font-weight: 700; }
+.eqcard .acct { text-align: right; font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
+.eqcard .acct b { color: var(--text); font-weight: 500; }
+.lw { position: relative; width: 100%; flex: 1; min-height: 240px; }
+.lw > div { position: absolute; inset: 0; }
+
+/* ---------- tabs / toolbars ---------- */
+.tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.tab { flex: 0 0 auto; display: flex; flex-direction: column; gap: 3px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); transition: .2s; min-width: 108px; text-align: left; }
+.tab:hover { border-color: var(--border2); background: var(--card2); }
+.tab.on { border-color: var(--border2); background: linear-gradient(180deg, rgba(124,92,252,.22), rgba(124,92,252,.08)); box-shadow: 0 6px 24px rgba(124,92,252,.22), inset 0 1px 0 rgba(255,255,255,.08); }
+.tab .t1 { font-family: var(--disp); font-weight: 700; font-size: 14px; letter-spacing: .04em; display: flex; align-items: center; gap: 8px; }
+.tab .t2 { font-family: var(--mono); font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; }
+.bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 3px; background: var(--card); }
+.seg button { padding: 5px 12px; border-radius: 999px; font-family: var(--mono); font-size: 11.5px; color: var(--muted); letter-spacing: .04em; }
+.seg button.on { background: var(--accent); color: #fff; box-shadow: 0 4px 16px rgba(124,92,252,.4); }
+.tog { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); font-family: var(--mono); font-size: 11.5px; color: var(--muted); transition: .2s; }
+.tog i { width: 10px; height: 2px; border-radius: 2px; background: var(--c, var(--accent2)); box-shadow: 0 0 6px var(--c, var(--accent2)); opacity: .35; }
+.tog.on { color: var(--text); border-color: var(--border2); } .tog.on i { opacity: 1; }
+.spacer { flex: 1; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 11.5px; color: var(--muted); padding: 10px 14px 0; min-height: 22px; }
+.legend b { color: var(--text); font-weight: 500; }
+.legend span i { font-style: normal; }
+
+/* ---------- charts grid ---------- */
+.deck { display: grid; grid-template-columns: 1fr 330px; gap: 18px; }
+.chartcard { padding: 6px 6px 8px; display: flex; flex-direction: column; user-select: none; -webkit-user-select: none; }
+.chartcard .lw { min-height: 440px; }
+.fsbtn { position: absolute; top: 8px; right: 10px; z-index: 5; width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border); background: rgba(13,15,28,.85); color: var(--muted); font-size: 15px; line-height: 1; display: grid; place-items: center; transition: .2s; }
+.fsbtn:hover { color: var(--text); border-color: var(--border2); box-shadow: 0 0 12px rgba(124,92,252,.35); }
+.chartcard.fs { background: var(--bg); border: 0; border-radius: 0; padding: 12px 14px; transition: none; }
+.chartcard.fs { position: fixed; inset: 0; z-index: 80; }
+.chartcard.fs::before { display: none; }
+.chartcard.fs .lw { min-height: 0 !important; flex: 3; }
+.chartcard.fs .panes { flex: 2.2; grid-template-rows: repeat(3, 1fr); min-height: 0; }
+.chartcard.fs .pane { min-height: 0; display: flex; }
+.chartcard.fs .pane .lw { flex: 1; }
+.chartcard.fs .legend { padding-right: 56px; }
+.fshint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 5; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--border); background: rgba(13,15,28,.85); color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; pointer-events: none; opacity: 0; transition: opacity .4s; }
+.chartcard.fs .fshint { animation: hintfade 4.5s ease forwards; }
+@keyframes hintfade { 0% { opacity: 0; } 12% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@media (max-width: 720px) { .fsbtn { width: 34px; height: 34px; } }
+.side { display: flex; flex-direction: column; gap: 14px; }
+.side .card { padding: 18px 20px; }
+.side h4 { margin: 0 0 12px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--accent2); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 7px 14px; font-size: 13.5px; }
+.kv .k { color: var(--muted); } .kv .v { font-family: var(--mono); text-align: right; }
+.bigpx { font-family: var(--disp); font-weight: 700; font-size: 34px; letter-spacing: -.02em; line-height: 1; margin-bottom: 4px; }
+.lvls { display: grid; gap: 6px; font-family: var(--mono); font-size: 12.5px; }
+.lvl { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; color: var(--muted); }
+.lvl b { color: var(--text); font-weight: 500; letter-spacing: .06em; }
+.lvl .d { height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--cyan)); opacity: .5; justify-self: start; }
+.calls { display: grid; gap: 8px; }
+.call { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; font-family: var(--mono); font-size: 12.5px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.025); border: 1px solid transparent; }
+.call:hover { border-color: var(--border); }
+.call .when { color: var(--muted); }
+.panes { display: grid; gap: 6px; margin-top: 6px; }
+.pane { position: relative; border-top: 1px solid rgba(124,92,252,.12); }
+.pane .lw { min-height: 110px; }
+.pane .pl { position: absolute; left: 12px; top: 6px; z-index: 2; font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); pointer-events: none; }
+.pane .pl b { color: var(--text); font-weight: 500; letter-spacing: 0; margin-left: 10px; text-transform: none; }
+.plan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.rung { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,.02); font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.rung b { display: block; color: var(--text); font-size: 15px; margin-top: 2px; font-weight: 500; }
+.rung.hit { border-color: rgba(52,211,153,.45); background: rgba(52,211,153,.08); } .rung.hit b { color: var(--up); }
+.rung small { display: block; margin-top: 3px; font-size: 10.5px; }
+.empty { padding: 60px 20px; text-align: center; color: var(--muted); font-size: 14px; width: 100%; }
+.empty b { display: block; color: var(--text); font-family: var(--disp); font-size: 18px; margin-bottom: 6px; }
+.note { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+/* ---------- grade chips ---------- */
+.g { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; font-family: var(--orb); font-weight: 700; font-size: 11.5px; color: #fff; vertical-align: middle; }
+.g.S { background: linear-gradient(135deg, #c4b5fd, #7c5cfc); box-shadow: 0 0 14px rgba(124,92,252,.6); }
+.g.A { background: linear-gradient(135deg, #7c5cfc, #5b3fd6); box-shadow: 0 0 10px rgba(124,92,252,.35); }
+.g.B { background: linear-gradient(135deg, rgba(56,189,248,.9), rgba(56,189,248,.5)); }
+.g.C { background: rgba(122,130,160,.35); color: var(--text); }
+.gpath { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: 6px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-family: var(--mono); font-size: 11px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.pill.targets { color: var(--up); border-color: rgba(52,211,153,.4); } .pill.invalidated, .pill.stop { color: var(--down); border-color: rgba(251,113,133,.4); } .pill.open { color: var(--accent3); border-color: var(--border2); }
+
+/* ---------- tables ---------- */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th { text-align: left; font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); font-weight: 500; padding: 14px 14px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.tbl td { padding: 13px 14px; border-bottom: 1px solid rgba(124,92,252,.1); vertical-align: middle; white-space: nowrap; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl tbody tr { transition: background .2s; } .tbl tbody tr:hover { background: rgba(124,92,252,.06); }
+.tbl .r { text-align: right; } .tbl th.r { text-align: right; }
+.tbl .dim { color: var(--muted); }
+.tbl .lbl { font-weight: 600; font-family: var(--disp); letter-spacing: .02em; }
+.scroll { overflow-x: auto; }
+.fills { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.fill { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 7px; background: rgba(52,211,153,.1); color: var(--up); border: 1px solid rgba(52,211,153,.3); }
+.fill.x { background: rgba(251,113,133,.1); color: var(--down); border-color: rgba(251,113,133,.3); }
+.fill.w { background: rgba(124,92,252,.1); color: var(--accent3); border-color: var(--border); }
+.xr { position: relative; width: 190px; height: 16px; }
+.xr .ax { position: absolute; left: 0; right: 0; top: 7px; height: 2px; background: rgba(124,92,252,.14); border-radius: 2px; }
+.xr .z { position: absolute; top: 2px; width: 1px; height: 12px; background: rgba(240,240,248,.35); }
+.xr .rg { position: absolute; top: 5px; height: 6px; border-radius: 6px; background: linear-gradient(90deg, rgba(251,113,133,.6), rgba(124,92,252,.6) 50%, rgba(52,211,153,.7)); }
+.xr .nt { position: absolute; top: 3px; width: 10px; height: 10px; border-radius: 50%; margin-left: -5px; border: 2px solid var(--bg); box-shadow: 0 0 8px currentColor; background: currentColor; }
+.xr .tk2 { position: absolute; top: 2px; width: 1px; height: 12px; background: rgba(52,211,153,.45); }
+.board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.gb { padding: 16px 18px; border-radius: 14px; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; }
+.gb .g { width: 38px; height: 38px; font-size: 16px; border-radius: 11px; grid-row: span 2; }
+.gb .n { font-family: var(--disp); font-weight: 700; font-size: 22px; line-height: 1; }
+.gb .n small { font-size: 12px; color: var(--muted); font-family: var(--mono); font-weight: 400; margin-left: 6px; }
+.gb .m { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+.gb .m b { color: var(--text); font-weight: 500; }
+
+/* ---------- calibration ---------- */
+.calgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.cal { padding: 18px 20px; }
+.cal h4 { margin: 0 0 14px; font-family: var(--disp); font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; }
+.cal h4 small { font-family: var(--mono); font-weight: 400; color: var(--muted); font-size: 11px; letter-spacing: .1em; }
+.mrow { display: grid; grid-template-columns: 74px 1fr 52px 72px; gap: 10px; align-items: center; font-family: var(--mono); font-size: 12px; padding: 7px 0; border-bottom: 1px solid rgba(124,92,252,.08); }
+.mrow:last-child { border-bottom: 0; }
+.mrow .b { color: var(--text); } .mrow .n { color: var(--muted); text-align: right; }
+.meter { height: 6px; border-radius: 6px; background: rgba(124,92,252,.14); overflow: hidden; }
+.meter i { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent), var(--cyan)); box-shadow: 0 0 10px rgba(124,92,252,.6); }
+.lessons li { margin: 0; padding: 10px 0; border-bottom: 1px solid rgba(124,92,252,.08); color: var(--text); font-size: 13.5px; }
+.lessons ul { list-style: none; padding: 0; margin: 0; } .lessons li:last-child { border-bottom: 0; }
+.lessons li::before { content: "◆"; color: var(--accent2); margin-right: 10px; font-size: 9px; }
+footer { margin-top: 90px; padding-top: 26px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 11.5px; color: var(--muted); letter-spacing: .04em; }
+footer b { color: var(--text); font-weight: 500; }
+.toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 60; padding: 10px 16px; border-radius: 12px; background: rgba(251,113,133,.12); border: 1px solid rgba(251,113,133,.4); color: var(--down); font-family: var(--mono); font-size: 12px; display: none; max-width: 92vw; }
+
+@media (max-width: 1040px) {
+  .deck { grid-template-columns: 1fr; } .calgrid { grid-template-columns: repeat(2, 1fr); } .hero { grid-template-columns: 1fr; }
+  .links { display: none; }
+}
+@media (max-width: 720px) {
+  .nav-in { padding: 0 16px; gap: 12px; } .clock small, .logo span { display: none; } .badge { font-size: 10.5px; padding: 5px 9px; }
+  .page { padding: 0 16px 60px; } .sec { padding-top: 64px; } .hero { padding-top: 40px; gap: 18px; }
+  .tiles { grid-template-columns: repeat(2, 1fr); } .board { grid-template-columns: repeat(2, 1fr); } .calgrid { grid-template-columns: 1fr; }
+  .chartcard .lw { min-height: 300px; } .pane .lw { min-height: 90px; } .eqcard { min-height: 300px; }
+  .xr { width: 130px; } .plan { gap: 6px; } .rung { padding: 8px 9px; font-size: 11px; } .rung b { font-size: 13px; }
+  .hero h1 { font-size: clamp(44px, 13vw, 62px); }
+  .eyebrow { letter-spacing: .2em; font-size: 10px; }
+  .eqcard .top { flex-direction: column; gap: 8px; } .eqcard .acct { text-align: left; display: flex; gap: 12px; flex-wrap: wrap; line-height: 1.4; }
+  .legend { gap: 10px; font-size: 11px; padding: 8px 10px 0; }
+  .side .card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) { .rv { transition: none; opacity: 1; transform: none; } .tape-in, .dot.live, .orbs::before, .orbs::after { animation: none; } }
+</style>
+<style>
+.links a.on { color: var(--text); background: rgba(124,92,252,.16); }
+.daygrid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+.dayrow { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; }
+.histcard { padding: 6px 6px 8px; }
+.histcard .lw { min-height: 220px; }
+.gchips { display: inline-flex; gap: 4px; }
+.gchips .g { width: 22px; height: 22px; font-size: 10px; border-radius: 6px; }
+.gchips .g.n0 { opacity: .22; }
+.tbl td.day { font-family: var(--disp); font-weight: 600; }
+.pf { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+.pf b { color: var(--text); font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="orbs"></div><div class="gridbg"></div><div class="spot" id="spot"></div>
+<div class="wrap">
+
+<nav class="nav"><div class="nav-in">
+  <a class="logo" href="index.html"><b>VAYEN</b><span>0DTE desk</span></a>
+  <div class="links"><a href="index.html">Today</a><a href="month.html" class="on">Month</a><a href="#days">Days</a><a href="#calibration">Calibration</a></div>
+  <div class="nav-r">
+    <span class="badge"><span class="dot" id="dot"></span><span id="status">connecting</span></span>
+    <span class="clock"><span id="clock">--:--:--</span><small>ET</small></span>
+    <span class="ring" title="next data refresh"><svg viewBox="0 0 26 26"><circle class="tr" cx="13" cy="13" r="11"/><circle class="pr" id="ringp" cx="13" cy="13" r="11" stroke-dasharray="69.1" stroke-dashoffset="0"/></svg><i id="ringt">60</i></span>
+  </div>
+</div></nav>
+
+<div class="tape"><div class="tape-in" id="tape"></div></div>
+
+<main class="page" id="top">
+  <section class="hero">
+    <div class="hero-l rv">
+      <div class="eyebrow" id="eyebrow">Month · paper desk</div>
+      <h1 id="big">$—</h1>
+      <div class="delta zero" id="delta">waiting for data</div>
+      <p class="sub" id="sub"></p>
+      <div class="tiles">
+        <div class="card tile"><div class="k">Trading days</div><div class="v num" id="t-days">—</div><div class="s" id="t-days-s"></div></div>
+        <div class="card tile"><div class="k">Callouts</div><div class="v num" id="t-call">—</div><div class="s" id="t-call-s"></div></div>
+        <div class="card tile"><div class="k">Paper trades</div><div class="v num" id="t-trade">—</div><div class="s" id="t-trade-s"></div></div>
+        <div class="card tile"><div class="k">Best day</div><div class="v num" id="t-best">—</div><div class="s" id="t-best-s"></div></div>
+      </div>
+    </div>
+    <div class="card eqcard rv">
+      <div class="top"><div><div class="eyebrow">Equity across days</div><h3>Bankroll, every paper fill since the start</h3></div><div class="acct" id="acct"></div></div>
+      <div class="lw"><div id="eq-chart"></div></div>
+    </div>
+  </section>
+
+  <section class="sec" id="days">
+    <div class="sec-h rv"><div><div class="eyebrow">01 — Day by day</div><h2>Every session on the <em>record</em></h2><p>Realized paper P&amp;L per day, with how many setups were called, how many went positive, and where the bankroll stood at the close.</p></div></div>
+    <div class="card histcard rv" style="margin-bottom:18px"><div class="legend" id="hist-legend"></div><div class="lw"><div id="hist-chart"></div></div></div>
+    <div class="card scroll rv"><table class="tbl" id="days-table">
+      <thead><tr><th>Day</th><th class="r">Callouts</th><th>Grades</th><th class="r">Hit rate</th><th class="r">Trades</th><th>W / L</th><th class="r">Realized</th><th class="r">Equity</th><th>Best trade</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="sec" id="calibration">
+    <div class="sec-h rv"><div><div class="eyebrow">02 — Calibration</div><h2>What the whole record says about <em>each grade</em></h2><p id="cal-sub">Win rate and average net by grade, lane, hour and trigger over every closed callout on record.</p></div></div>
+    <div class="calgrid rv" id="calgrid"></div>
+    <div class="card cal lessons rv" style="margin-top:14px"><h4>Lessons <small id="cal-n"></small></h4><ul id="lessons"></ul></div>
+  </section>
+
+  <footer><span>Snapshot <b id="f-gen">—</b></span><span>Webull paper sandbox · Vayen AI · <b>built for the desk</b></span></footer>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  "use strict";
+  const LW = window.LightweightCharts;
+  const DATA_URL = window.DASH_DATA_URL || "./data.json";
+  const DATA_BASE = window.DASH_DATA_BASE || null;
+  const REFRESH = 120;
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const td = (text, cls) => el("td", cls, text);
+  const pct = (v, d = 1) => (v == null || isNaN(v)) ? "—" : (v > 0 ? "+" : "") + Number(v).toFixed(d) + "%";
+  const usd = (v, d = 0) => (v == null || isNaN(v)) ? "—" : (v < 0 ? "−" : "") + "$" + Math.abs(Number(v)).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+  const sgn = (v) => v > 0 ? "pos" : v < 0 ? "neg" : "zero";
+  const dayName = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  const state = { d: null, left: REFRESH, liveSeen: false, tapeSig: null };
+  const C = {};
+
+  const spot = $("spot"); let sx = 0, sy = 0, spotQueued = false;
+  window.addEventListener("pointermove", (e) => { sx = e.clientX; sy = e.clientY; if (!spotQueued) { spotQueued = true; requestAnimationFrame(() => { spotQueued = false; spot.style.transform = "translate3d(" + sx + "px," + sy + "px,0)"; }); } }, { passive: true });
+  const io = new IntersectionObserver((es) => es.forEach(x => { if (x.isIntersecting) { x.target.classList.add("in"); io.unobserve(x.target); } }), { threshold: .08 });
+  document.querySelectorAll(".rv").forEach(x => io.observe(x));
+  const clockFmt = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  function tick() { const p = clockFmt.formatToParts(new Date()); const g = (t) => p.find(x => x.type === t).value; const h = (+g("hour")) % 24; $("clock").textContent = (h < 10 ? "0" : "") + h + ":" + g("minute") + ":" + g("second"); }
+  tick(); setInterval(tick, 1000);
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => { t.style.display = "none"; }, 8000); }
+  window.addEventListener("error", (e) => toast("page error: " + (e.message || e.type)));
+
+  const base = (extra) => Object.assign({
+    autoSize: true,
+    layout: { background: { type: "solid", color: "transparent" }, textColor: "#7a82a0", fontFamily: "JetBrains Mono, monospace", fontSize: 11 },
+    grid: { vertLines: { visible: false }, horzLines: { color: "rgba(124,92,252,.07)" } },
+    crosshair: { mode: LW.CrosshairMode.Normal, vertLine: { color: "rgba(196,181,253,.4)", width: 1, style: LW.LineStyle.Dashed, labelBackgroundColor: "#7c5cfc" }, horzLine: { color: "rgba(196,181,253,.4)", width: 1, style: LW.LineStyle.Dashed, labelBackgroundColor: "#7c5cfc" } },
+    rightPriceScale: { borderColor: "rgba(124,92,252,.2)", minimumWidth: 64, scaleMargins: { top: .2, bottom: .12 } },
+    timeScale: { borderColor: "rgba(124,92,252,.2)", timeVisible: true, secondsVisible: false, rightOffset: 2 },
+    handleScroll: false, handleScale: false,
+  }, extra || {});
+  const money = { type: "custom", formatter: (v) => (v < 0 ? "−$" : "$") + Math.abs(Math.round(v)), minMove: 1 };
+
+  function build() {
+    const ch = LW.createChart($("eq-chart"), base({ localization: { timeFormatter: (t) => { const d = new Date(t * 1000); return d.toISOString().slice(5, 10).replace("-", "/") + " " + d.toISOString().slice(11, 16) + " ET"; } } }));
+    const s = ch.addBaselineSeries({ baseValue: { type: "price", price: 0 }, topLineColor: "#34d399", topFillColor1: "rgba(52,211,153,.35)", topFillColor2: "rgba(52,211,153,0)", bottomLineColor: "#fb7185", bottomFillColor1: "rgba(251,113,133,0)", bottomFillColor2: "rgba(251,113,133,.35)", lineWidth: 2, lineType: LW.LineType.WithSteps, priceLineVisible: false, lastValueVisible: true, priceFormat: money });
+    C.eq = { ch, s };
+    const hc = LW.createChart($("hist-chart"), base({ timeScale: { borderColor: "rgba(124,92,252,.2)", timeVisible: false, rightOffset: 1, barSpacing: 28, minBarSpacing: 8 } }));
+    const h = hc.addHistogramSeries({ priceFormat: money, priceLineVisible: false, lastValueVisible: false, base: 0 });
+    C.hist = { ch: hc, s: h };
+  }
+  function render(d) {
+    state.d = d;
+    const h = d.history || {}; const days = h.days || []; const ms = h.month_summary || {}; const all = h.all_summary || {};
+    const month = h.month || (d.day || "").slice(0, 7);
+    const mname = month ? new Date(month + "-15T12:00:00").toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "";
+    $("eyebrow").textContent = mname + " · paper desk";
+    const scan = d.last_scan || ""; const m = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/.exec(scan); let age = null;
+    if (m) { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" }).formatToParts(new Date()); const g = (t) => p.find(x => x.type === t).value; age = Math.round((Date.UTC(+g("year"), +g("month") - 1, +g("day"), (+g("hour")) % 24, +g("minute"), +g("second")) - Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) / 60000); }
+    $("dot").className = "dot " + (age == null ? "" : age <= 3 ? "live" : age <= 20 ? "stale" : "");
+    $("status").textContent = age == null ? "no scan yet" : age <= 1 ? "LIVE · scanning" : age < 60 ? "last scan " + age + " min ago" : "market closed · " + scan.replace(/^\d{4}-\d{2}-\d{2} /, "").slice(0, 5) + " ET";
+    if (h.error || !days.length) { $("big").textContent = "$0"; $("delta").textContent = h.error ? "history unavailable" : "no closed callouts on record yet"; $("sub").textContent = "The month fills in from the first closed callout."; return; }
+    const r = ms.realized || 0;
+    $("big").textContent = (r < 0 ? "−" : "") + "$" + Math.abs(Math.round(r)); $("big").style.filter = "";
+    const dl = $("delta"); dl.className = "delta " + sgn(r); dl.textContent = (ms.trades || 0) + " paper trade" + (ms.trades === 1 ? "" : "s") + " · " + (ms.won || 0) + " won · " + (ms.lost || 0) + " lost" + (ms.profit_factor != null ? " · profit factor " + ms.profit_factor : "");
+    const sub = $("sub"); sub.textContent = ""; sub.appendChild(document.createTextNode("Realized on the paper account in " + mname + " from a ")); sub.appendChild(el("b", null, usd(h.bankroll))); sub.appendChild(document.createTextNode(" bankroll. " + (ms.avg_win != null ? "Average winner " + usd(ms.avg_win) + (ms.avg_loss != null ? ", average loser " + usd(ms.avg_loss) : "") + ". " : "") + "All-time: " + usd(all.realized || 0) + " over " + (all.days || 0) + " session" + (all.days === 1 ? "" : "s") + "."));
+    $("t-days").textContent = String(ms.days || 0); $("t-days-s").textContent = (all.days || 0) + " on record";
+    $("t-call").textContent = String(ms.callouts || 0); $("t-call-s").textContent = ms.closed ? Math.round(100 * (ms.hits || 0) / ms.closed) + "% went positive" : "—";
+    $("t-trade").textContent = String(ms.trades || 0); $("t-trade-s").textContent = (ms.won || 0) + " won · " + (ms.lost || 0) + " lost";
+    const best = days.filter(x => x.day.startsWith(month)).reduce((a, x) => (a == null || x.realized > a.realized) ? x : a, null);
+    $("t-best").textContent = best ? usd(best.realized) : "—"; $("t-best").className = "v num " + sgn(best ? best.realized : 0); $("t-best-s").textContent = best ? dayName(best.day) + (ms.worst_day && ms.worst_day !== best.day ? " · worst " + dayName(ms.worst_day) : "") : "";
+    const last = days[days.length - 1]; const a = $("acct"); a.textContent = ""; const e1 = el("div"); e1.appendChild(document.createTextNode("equity now ")); e1.appendChild(el("b", null, usd(last.equity))); a.appendChild(e1); const e2 = el("div"); e2.appendChild(document.createTextNode("started ")); e2.appendChild(el("b", null, usd(h.bankroll))); a.appendChild(e2);
+    // equity curve: a step per fill, with a slot at each session's open and close so the axis reads in days
+    const pts = new Map(); (h.curve || []).forEach(p => pts.set(p[0], p[1]));
+    days.forEach(x => { const [y, mo, dd] = x.day.split("-").map(Number); [Date.UTC(y, mo - 1, dd, 9, 30) / 1000, Date.UTC(y, mo - 1, dd, 16, 0) / 1000].forEach(t => { if (!pts.has(t)) pts.set(t, null); }); });
+    const data = [...pts.entries()].sort((p, q) => p[0] - q[0]).map(([time, v]) => v == null ? { time } : { time, value: v });
+    C.eq.s.applyOptions({ baseValue: { type: "price", price: h.bankroll || 0 } }); C.eq.s.setData(data); C.eq.ch.timeScale().fitContent(); setTimeout(() => C.eq.ch.timeScale().fitContent(), 150);
+    C.hist.s.setData(days.map(x => ({ time: x.day, value: x.realized, color: x.realized >= 0 ? "#34d399" : "#fb7185" }))); C.hist.ch.timeScale().fitContent(); setTimeout(() => C.hist.ch.timeScale().fitContent(), 150);
+    const L = $("hist-legend"); L.textContent = ""; const it = (k, v, c) => { const s = el("span"); s.appendChild(document.createTextNode(k + " ")); const b = el("b", null, v); if (c) b.style.color = c; s.appendChild(b); L.appendChild(s); };
+    it("Realized per day", ""); it("best", usd(best ? best.realized : 0), "#34d399"); if (ms.worst_day) it("worst", usd((days.find(x => x.day === ms.worst_day) || {}).realized), "#fb7185"); it("profit factor", ms.profit_factor != null ? String(ms.profit_factor) : "—");
+    // table, newest first
+    const tb = $("days-table").querySelector("tbody"); tb.textContent = "";
+    days.slice().reverse().forEach(x => { const tr = el("tr"); tr.appendChild(td(dayName(x.day), "day")); tr.appendChild(td(String(x.callouts), "num r"));
+      const gc = el("td"); const gs = el("span", "gchips"); ["S", "A", "B", "C"].forEach(g => { const n = (x.grades || {})[g] || 0; const c = el("span", "g " + g + (n ? "" : " n0"), n ? g + n : g); c.title = n + " " + g + " callout" + (n === 1 ? "" : "s"); gs.appendChild(c); }); gc.appendChild(gs); tr.appendChild(gc);
+      tr.appendChild(td(x.hit_pct == null ? "—" : x.hit_pct + "%", "num r")); tr.appendChild(td(String(x.trades), "num r")); tr.appendChild(td(x.trades ? x.won + " / " + x.lost : "—", "num dim"));
+      tr.appendChild(td(x.trades ? usd(x.realized) : "—", "num r " + (x.trades ? sgn(x.realized) : "zero"))); tr.appendChild(td(usd(x.equity), "num r")); tr.appendChild(td(x.best_label ? x.best_label + " " + usd(x.best) : "—", "dim")); tb.appendChild(tr); });
+    renderCal(d);
+    const tk = $("tape"), items = (d.setups || []).map(s => { const sp = el("span", "tk"); sp.appendChild(el("span", "g " + s.grade0, s.grade0)); sp.appendChild(el("b", null, s.posted + " " + s.label)); sp.appendChild(el("span", sgn(s.net_pct), pct(s.net_pct))); return sp; });
+    if (!items.length) items.push(el("span", "tk", "No callouts yet today"));
+    const sig = items.map(x => x.textContent).join("|"); if (sig !== state.tapeSig) { state.tapeSig = sig; tk.textContent = ""; items.concat(items.map(x => x.cloneNode(true))).forEach(x => tk.appendChild(x)); }
+    $("f-gen").textContent = d.generated ? d.generated.replace("T", " ").slice(0, 19) + " ET" : "—";
+  }
+  function renderCal(d) {
+    const names = { grade: "By grade", lane: "By lane", hour: "By hour band", "B score": "B grades by score", trigger: "By trigger", kind: "By setup kind" }; const tables = d.calibration || {}; const g = $("calgrid"); g.textContent = "";
+    ["grade", "lane", "hour", "B score", "trigger", "kind"].filter(t => tables[t] && tables[t].length).forEach(t => { const c = el("div", "card cal"); const h = el("h4"); h.appendChild(document.createTextNode(names[t])); h.appendChild(el("small", null, "win · avg net · n")); c.appendChild(h);
+      tables[t].forEach(r => { const row = el("div", "mrow"); row.appendChild(el("span", "b", r.bucket)); const mt = el("div", "meter"); const i = el("i"); i.style.width = Math.max(2, r.win_pct || 0) + "%"; mt.appendChild(i); row.appendChild(mt); row.appendChild(el("span", "n", (r.win_pct == null ? "—" : r.win_pct + "%"))); row.appendChild(el("span", "n " + sgn(r.net), pct(r.net) + " · " + r.n)); c.appendChild(row); }); g.appendChild(c); });
+    $("cal-n").textContent = (d.closed_all_time || 0) + " closed callouts on record"; const ls = $("lessons"); ls.textContent = ""; (d.lessons || []).forEach(x => ls.appendChild(el("li", null, x)));
+  }
+  const etStamp = (backSec) => { const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }).formatToParts(new Date(Date.now() - backSec * 1000)); const g = (t) => p.find(x => x.type === t).value; return g("year") + g("month") + g("day") + ((+g("hour")) % 24 < 10 ? "0" : "") + ((+g("hour")) % 24) + g("minute"); };
+  async function fetchJson(url) { const r = await fetch(url, { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }
+  async function load() {
+    let d = null;
+    if (DATA_BASE) { const probes = state.liveSeen ? 4 : 2; for (let k = 0; k < probes && !d; k++) { try { d = await fetchJson(DATA_BASE + "m/" + etStamp(70 + 60 * k) + ".json"); state.liveSeen = true; } catch (e) {} } if (!d && state.liveSeen && state.d) { state.left = REFRESH; return; } }
+    try { if (!d) d = await fetchJson(DATA_URL + (DATA_URL.includes("?") ? "&" : "?") + "t=" + Date.now()); render(d); }
+    catch (e) { toast("data load failed: " + e.message); $("status").textContent = "data unavailable"; $("dot").className = "dot"; }
+    state.left = REFRESH;
+  }
+  setInterval(() => { state.left = Math.max(0, state.left - 1); $("ringt").textContent = String(state.left); $("ringp").style.strokeDashoffset = String(69.1 * (1 - state.left / REFRESH)); if (state.left === 0) load(); }, 1000);
+  if (!LW) { toast("chart library failed to load"); return; }
+  build(); load();
+})();
+</script>
+</body>
+</html>
