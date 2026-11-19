@@ -381,7 +381,11 @@ footer b { color: var(--text); font-weight: 500; }
   const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const GC = { S: "#c4b5fd", A: "#7c5cfc", B: "#38bdf8", C: "#7a82a0" };
   const EMAC = { 5: "#fbbf24", 9: "#f472b6", 20: "#a78bfa", 50: "#38bdf8", 200: "#ffffff" };
-  const LVL = { PDH: ["#7a82a0", 0], PDL: ["#7a82a0", 0], PDC: ["#4b5270", 2], ORH: ["#a78bfa", 1], ORL: ["#a78bfa", 1], PMH: ["#38bdf8", 2], PML: ["#38bdf8", 2], P: ["#fbbf24", 3], R1: ["#4b5270", 3], S1: ["#4b5270", 3] };
+  const LVL = { PDH: ["#7a82a0", 0], PDL: ["#7a82a0", 0], PDC: ["#4b5270", 2], PDM: ["#4b5270", 3], DO: ["#fbbf24", 2], ORH: ["#a78bfa", 1], ORL: ["#a78bfa", 1], PRH: ["#38bdf8", 2], PRL: ["#38bdf8", 2], P: ["#fbbf24", 3], R1: ["#4b5270", 3], S1: ["#4b5270", 3],
+    WO: ["#f472b6", 2], PWH: ["#f472b6", 0], PWL: ["#f472b6", 0], PWM: ["#f472b6", 3], MonH: ["#c4b5fd", 2], MonL: ["#c4b5fd", 2], MonM: ["#c4b5fd", 3],
+    MO: ["#34d399", 2], PMH: ["#34d399", 0], PML: ["#34d399", 0], PMM: ["#34d399", 3], QO: ["#fb7185", 2], PQH: ["#fb7185", 0], PQL: ["#fb7185", 0], PQM: ["#fb7185", 3],
+    YO: ["#ffffff", 2], YH: ["#ffffff", 0], YL: ["#ffffff", 0], YM: ["#ffffff", 3], Q1_25: ["#7c5cfc", 3], Q1_50: ["#7c5cfc", 1], Q1_75: ["#7c5cfc", 3], Q2_25: ["#38bdf8", 3], Q2_50: ["#38bdf8", 1], Q2_75: ["#38bdf8", 3] };
+  const NEAR_LEVELS = 14;   // the side card lists the nearest lines; the chart draws them all
   const state = { touched: false, liveSeen: false, tapeSig: null, d: null, sym: null, tf: 1, ov: { ema: true, vwap: true, levels: true, vol: true, marks: true }, con: null, cema: { 5: true, 9: true, 20: true, 50: true, 200: true }, cov: { plan: true, fills: true }, filter: "all", counted: false, fitSym: null, fitCon: null, left: REFRESH };
   const C = {};
 
@@ -510,7 +514,7 @@ footer b { color: var(--text); font-weight: 500; }
     sideLast.textContent = px(m.last, 2); sideLast.className = "bigpx num " + sgn(m.change_pct);
     const row = (k, v, cls) => { kv.appendChild(el("div", "k", k)); kv.appendChild(el("div", "v " + (cls || ""), v)); };
     row("Session", pct(m.change_pct, 2), sgn(m.change_pct)); row("Lean", m.lean || "—"); row("VWAP", px(m.vwap && m.vwap[m.vwap.length - 1], 2)); row("EMA 9 / 21", px(m.ema9[m.ema9.length - 1], 2) + " / " + px(m.ema21[m.ema21.length - 1], 2)); row("Bars today", String(m.bars.length));
-    const last = m.last; const lvls = Object.entries(m.levels || {}).filter(([k]) => LVL[k]).sort((a, b) => b[1] - a[1]); const span = Math.max(0.01, ...lvls.map(([, v]) => Math.abs(v - last)));
+    const last = m.last; let lvls = Object.entries(m.levels || {}).filter(([k]) => LVL[k]).sort((a, b) => Math.abs(a[1] - last) - Math.abs(b[1] - last)).slice(0, NEAR_LEVELS).sort((a, b) => b[1] - a[1]); const span = Math.max(0.01, ...lvls.map(([, v]) => Math.abs(v - last)));
     lvls.forEach(([k, v]) => { const r = el("div", "lvl"); r.appendChild(el("b", null, k)); const dd = el("span", "d"); dd.style.width = (18 + 82 * Math.abs(v - last) / span) + "%"; dd.style.background = v >= last ? "linear-gradient(90deg,var(--accent),var(--cyan))" : "linear-gradient(90deg,var(--down),var(--accent))"; r.appendChild(dd); r.appendChild(el("span", "num " + (v >= last ? "pos" : "neg"), px(v, 2) + "  " + (v >= last ? "+" : "−") + Math.abs(v - last).toFixed(2))); lv.appendChild(r); });
     if (!lvls.length) lv.appendChild(el("div", "note", "No levels in this snapshot."));
     const calls = (state.d.setups || []).filter(s => s.symbol === state.sym);
